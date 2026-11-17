@@ -24,7 +24,7 @@ pygame.display.set_caption("Tiny Death Star")  #Título da janela
 pygame.init()
 pygame.mixer.init()
 
-pygame.mixer.music.load("Tiny-Death-Star_Main-Star-Wars-Theme.mp3")
+pygame.mixer.music.load("tiny-death-star/music/Tiny-Death-Star_Main-Star-Wars-Theme.mp3")
 pygame.mixer.music.play(-1)  #Reproduzir em loop (pygame.mixer.music.stop() para parar a música)
 
 
