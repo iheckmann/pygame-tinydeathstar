@@ -137,32 +137,112 @@ titulo = [
 ]
 
 #BOTÕES (para o menu principal):
+tela_atual = "menu"  #ou "menu", "como_jogar", "configuracoes", "jogo"
+botao_voltar = pygame.Rect(300, 480, 200, 38)
+
+
+fonte_botao = pygame.font.Font("tiny-death-star/fontes/star_jedi/starjedi/Starjedi.ttf", 14)
+
+botoes_menu = [
+    ("i n i c i a r", pygame.Rect(280, 410, 240, 36)),
+    ("c o m o   j o g a r", pygame.Rect(280, 454, 240, 36)),
+    ("c o n f i g u r a ç õ e s", pygame.Rect(280, 498, 240, 36)),
+    ("s a i r", pygame.Rect(280, 542, 240, 36))
+]
+
+def carregar_personagem(caminho, escala=2):
+    img = pygame.image.load(caminho).convert_alpha()
+    
+    # Recorta as sobras transparentes em volta para o pé encostar certinho no chão
+    rect_recorte = img.get_bounding_rect()
+    img = img.subsurface(rect_recorte).copy()
+
+    w, h = img.get_size()
+    return pygame.transform.scale(img, (w * escala, h * escala))
+
+
+#PERSONAGENS
+vader = carregar_personagem("tiny-death-star/characters/the-force/Darth_Vader.png", escala=2)
+stormtrooper = carregar_personagem("tiny-death-star/characters/troops/Stormtrooper.png", escala=2)
+c3po = carregar_personagem("tiny-death-star/characters/droids/C-3PO.png", escala = 2)
+
+## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
+
+
+
+
 
 #LOOP PRINCIPAL DO JOGO:
 game = True
 while game:
+    mouse_pos = pygame.mouse.get_pos()
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             game = False
 
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if tela_atual == "menu":
+                for texto, rect in botoes_menu:
+                    if rect.collidepoint(mouse_pos):
+                        if texto == "i n i c i a r":
+                            tela_atual = "jogo"
+                        elif texto == "c o m o   j o g a r":
+                            tela_atual = "como_jogar"
+                        elif texto == "c o n f i g u r a ç õ e s":
+                            tela_atual = "configuracoes"
+                        elif texto == "s a i r":
+                            game = False
+            else:
+                if botao_voltar.collidepoint(mouse_pos):
+                    tela_atual = "menu"
+
     screen.fill(GALAXIA_COR)  #Preencher o fundo com a cor do espaço
-    screen.blit(death_star_img, death_star_rect)  #Desenhar Death Star
+
+
+    if tela_atual == "menu":
+        screen.blit(death_star_img, death_star_rect)  #Desenhar Death Star
     
-    #Contorno do título "TINY DEATH STAR"
-    pygame.draw.rect(screen, (255, 165, 0), caixa_rect, width=6, border_radius=15)
-    pygame.draw.rect(screen, AMARELO_TITULO, caixa_rect.inflate(-4, -4), width=3, border_radius=14)
-    screen.blit(txt_star, star_rect)
-    screen.blit(txt_wars, wars_rect)
+        #Contorno do título "TINY DEATH STAR"
+        pygame.draw.rect(screen, (255, 165, 0), caixa_rect, width=6, border_radius=15)
+        pygame.draw.rect(screen, AMARELO_TITULO, caixa_rect.inflate(-4, -4), width=3, border_radius=14)
+        screen.blit(txt_star, star_rect)
+        screen.blit(txt_wars, wars_rect)
 
-    #Chão e personagens na base
-    pygame.draw.rect(screen, (40, 45, 60), (0, 520, 800, 80))
-    # screen.blit(vader, (376, 465))
+        for img, y in titulo:
+            screen.blit(img, (400 - img.get_width() // 2, y))
 
-    for img, y in titulo:
-        screen.blit(img, (400 - img.get_width() // 2, y))
+        #Chão e personagens na base
+        pygame.draw.rect(screen, (40, 45, 60), (0, 520, 800, 80))
+        screen.blit(vader, (650, 390))
 
-    # Chão na base
-    pygame.draw.rect(screen, (40, 45, 60), (0, 520, 800, 80))
+
+        #botões do menu principal
+        for texto, rect in botoes_menu:
+            pygame.draw.rect(screen, (25, 28, 42), rect, border_radius=8)
+            pygame.draw.rect(screen, AMARELO_TITULO, rect, width=2, border_radius=8)
+            txt = fonte_botao.render(texto, False, AMARELO_TITULO)
+            txt_rect = txt.get_rect(center=(rect.centerx, rect.centery - 2))
+            screen.blit(txt, txt_rect)
+
+        for texto, rect in botoes_menu:
+            if rect.collidepoint(mouse_pos):
+                hover = rect.collidepoint(mouse_pos)
+                cor_fundo = (55, 62, 85) if hover else (25, 28, 42)
+                cor_borda = (255, 255, 130) if hover else AMARELO_TITULO
+
+                pygame.draw.rect(screen, cor_fundo, rect, border_radius=8)
+                pygame.draw.rect(screen, cor_borda, rect, width=2, border_radius=8)
+                txt = fonte_botao.render(texto, False, cor_borda)
+                screen.blit(txt, txt.get_rect(center=(rect.centerx, rect.centery - 2)))
+
+    elif tela_atual in ("como_jogar", "configuracoes"):
+        pygame.draw.rect(screen, (25, 28, 42), botao_voltar, border_radius=8)
+        pygame.draw.rect(screen, AMARELO_TITULO, botao_voltar, width=2, border_radius=8)
+        txt = fonte_botao.render("voltar", False, AMARELO_TITULO)
+        screen.blit(txt, txt.get_rect(center=(botao_voltar.centerx, botao_voltar.centery - 2)))
 
     pygame.display.update()
 
