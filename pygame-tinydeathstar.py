@@ -162,9 +162,23 @@ def carregar_personagem(caminho, escala=2):
 
 
 #PERSONAGENS
-vader = carregar_personagem("tiny-death-star/characters/the-force/Darth_Vader.png", escala=2)
+#rebels
+luke = carregar_personagem("tiny-death-star/characters/men-of-the-rebellion/Luke_Skywalker.png", escala = 2)
+leia = carregar_personagem("tiny-death-star/characters/ladies-of-the-rebellion/Leia_Organa_Rebel.png", escala = 2)
+han_solo = carregar_personagem("tiny-death-star/characters/men-of-the-rebellion/Han_Solo.png", escala = 2)
+chewbacca = carregar_personagem("tiny-death-star/characters/rebel-heroes/Chewbacca.png", escala=2)
+
+#droids
+c3po = carregar_personagem("tiny-death-star/characters/droids/C-3PO.png", escala = 1.8)
+r2d2 = carregar_personagem("tiny-death-star/characters/droids/R2-D2.png", escala = 1.8)
+
+#imperial
+vader = carregar_personagem("tiny-death-star/characters/the-force/Darth_Vader.png", escala=1.8)
 stormtrooper = carregar_personagem("tiny-death-star/characters/troops/Stormtrooper.png", escala=2)
-c3po = carregar_personagem("tiny-death-star/characters/droids/C-3PO.png", escala = 2)
+palpatine = carregar_personagem("tiny-death-star/characters/the-force/Emperor_Palpatine.png", escala=1.8)
+tarkin = carregar_personagem("tiny-death-star/characters/limited-edition/Grand_Moff_Tarkin.png", escala=2)
+greedo = carregar_personagem("tiny-death-star/characters/bounty-hunters/Greedo.png", escala=1.6)
+guard = carregar_personagem("tiny-death-star/characters/troops/Royal_Gaurd.png", escala=1.7)
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -216,7 +230,19 @@ while game:
 
         #Chão e personagens na base
         pygame.draw.rect(screen, (40, 45, 60), (0, 520, 800, 80))
-        screen.blit(vader, (650, 390))
+        screen.blit(stormtrooper, (665, 400))
+        screen.blit(greedo, (748, 435))
+        screen.blit(tarkin, (600, 415))
+        screen.blit(guard, (695, 483))
+        screen.blit(palpatine, (615, 440))
+        screen.blit(vader, (525, 445))
+
+        screen.blit(leia, (10, 395))
+        screen.blit(han_solo, (118, 400))
+        screen.blit(r2d2, (120, 510))
+        screen.blit(c3po, (75, 465))
+        screen.blit(luke, (185, 452))
+        screen.blit(chewbacca, (-8, 465))
 
 
         #botões do menu principal
