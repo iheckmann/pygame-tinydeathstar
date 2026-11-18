@@ -1,4 +1,5 @@
 import sys
+import random
 import pygame
 
 pygame.init()
@@ -180,6 +181,14 @@ tarkin = carregar_personagem("tiny-death-star/characters/limited-edition/Grand_M
 greedo = carregar_personagem("tiny-death-star/characters/bounty-hunters/Greedo.png", escala=1.6)
 guard = carregar_personagem("tiny-death-star/characters/troops/Royal_Gaurd.png", escala=1.7)
 
+#ESTRELAS:
+estrelas = []
+for _ in range(75):
+    x = random.randint(0, 800)
+    y = random.randint(0, 515) #para no chão cinza (y = 520)
+    tam = random.choice([2,3])
+    brilho = random.randint(120,255)
+    estrelas.append([x, y, tam, brilho])
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
@@ -217,6 +226,13 @@ while game:
 
 
     if tela_atual == "menu":
+        for estrela in estrelas:
+            if random.random() < 0.03: #3% de chance por frame de mudar o brilho, efeito != estático (sugestão de IA)
+                estrela[3]
+            b = estrela[3]
+            pygame.draw.rect(screen, (b, b, b), (estrela[0], estrela[1], estrela[2], estrela[2]))
+
+
         screen.blit(death_star_img, death_star_rect)  #Desenhar Death Star
     
         #Contorno do título "TINY DEATH STAR"
