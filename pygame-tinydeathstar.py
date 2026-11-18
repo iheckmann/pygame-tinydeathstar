@@ -16,7 +16,9 @@ AMARELO_TITULO = (255, 215, 0)  #Amarelo para o texto inicial ("TINY DEATH STAR"
 GALAXIA_COR = (10, 10, 25)  #Azul escuro do espaço
 DEATH_STAR_CINZA = (160, 160, 160)  #Cinza para a Estrela da Morte
 TRENCH_CINZA = (110, 110, 110)  #Cinza mais escuro para o trench
-DISH_CINZA = (130, 130, 130)  #Cinza para o prato do superlaser (olho da Estrela da Morte)  
+DISH_CINZA = (130, 130, 130)  #Cinza para o prato do superlaser (olho da Estrela da Morte) 
+TIE_CINZA = (170, 175, 185) #Cinza tie fighter
+TIE_ESCURO = (70, 75, 85) #Escuro tie fighter 
 
 #JANELA:
 JANELA_LARGURA = 800
@@ -143,12 +145,66 @@ botao_voltar = pygame.Rect(300, 480, 200, 38)
 
 
 fonte_botao = pygame.font.Font("tiny-death-star/fontes/star_jedi/starjedi/Starjedi.ttf", 14)
+fonte_titulo_painel = pygame.font.Font("tiny-death-star/fontes/star_jedi/starjedi/Starjedi.ttf", 26)
+
+#som
+som_ativo = True 
+fonte_instrucoes = pygame.font.SysFont("avenir", 20, bold=True)
+
+TEXTOS = {
+    "pt": {
+        "iniciar": "i n i c i a r",
+        "como_jogar": "c o m o   j o g a r",
+        "configuracoes": "c o n f i g u r a ç õ e s",
+        "sair": "s a i r",
+        "voltar": "v o l t a r",
+        "som_on": "s o m :   l i g a d o   ( m )",
+        "som_off": "s o m :   m u d o   ( m )",
+        "idioma": "i d i o m a :   p o r t u g u ê s",
+        "titulo_como": "c o m o   j o g a r",
+        "regras": [
+            "1. Construa novos andares na Estrela da Morte.",
+            "2. Use o elevador para levar visitantes ao andar certo.",
+            "3. Colete créditos para expandir o Império!",
+            "Atalho rápido: aperte M para mutar o som."
+        ]
+    },
+    "en": {
+        "iniciar": "s t a r t",
+        "como_jogar": "h o w   t o   p l a y",
+        "configuracoes": "s e t t i n g s",
+        "sair": "q u i t",
+        "voltar": "b a c k",
+        "som_on": "s o u n d :   o n   ( m )",
+        "som_off": "s o u n d :   m u t e d   ( m )",
+        "idioma": "l a n g u a g e :   e n g l i s h",
+        "titulo_como": "h o w   t o   p l a y",
+        "regras": [
+            "1. Build new floors inside the Death Star.",
+            "2. Use the elevator to take visitors to their floor.",
+            "3. Collect credits to expand the Empire!",
+            "Quick shortcut: press M to mute sound."
+        ]
+    }
+    
+}
+
+botao_som = pygame.Rect(210, 230, 380, 42)
+botao_idioma = pygame.Rect(210, 290, 380, 42)
+
+def alternar_som():
+    global som_ativo
+    som_ativo = not som_ativo
+    if som_ativo:
+        pygame.mixer.music.unpause()
+    else:
+        pygame.mixer.music.pause()
 
 botoes_menu = [
-    ("i n i c i a r", pygame.Rect(280, 410, 240, 36)),
-    ("c o m o   j o g a r", pygame.Rect(280, 454, 240, 36)),
-    ("c o n f i g u r a ç õ e s", pygame.Rect(280, 498, 240, 36)),
-    ("s a i r", pygame.Rect(280, 542, 240, 36))
+    ("iniciar", pygame.Rect(280, 410, 240, 36)),
+    ("como_jogar", pygame.Rect(280, 454, 240, 36)),
+    ("configuracoes", pygame.Rect(280, 498, 240, 36)),
+    ("sair", pygame.Rect(280, 542, 240, 36))
 ]
 
 def carregar_personagem(caminho, escala=2):
@@ -181,7 +237,7 @@ tarkin = carregar_personagem("tiny-death-star/characters/limited-edition/Grand_M
 greedo = carregar_personagem("tiny-death-star/characters/bounty-hunters/Greedo.png", escala=1.6)
 guard = carregar_personagem("tiny-death-star/characters/troops/Royal_Gaurd.png", escala=1.7)
 
-#ESTRELAS:
+#ESTRELAS (fundo):
 estrelas = []
 for _ in range(75):
     x = random.randint(0, 800)
@@ -189,6 +245,40 @@ for _ in range(75):
     tam = random.choice([2,3])
     brilho = random.randint(120,255)
     estrelas.append([x, y, tam, brilho])
+
+#NAVES (fundo):
+def tie_fighter(tam_px=3):
+    surf = pygame.Surface((9 * tam_px, 7 * tam_px), pygame.SRCALPHA)
+    #asas + cabine
+    for x in (0, 8):
+        pygame.draw.rect(surf, TIE_CINZA, (x * tam_px, 0, tam_px, 7 * tam_px))
+    pygame.draw.rect(surf, TIE_CINZA, (tam_px, 3 * tam_px, 7 * tam_px, tam_px))
+    pygame.draw.rect(surf, TIE_CINZA, (3 * tam_px, 2 * tam_px, 3 * tam_px, 3 * tam_px))
+    pygame.draw.rect(surf, TIE_ESCURO, (4 * tam_px, 3 * tam_px, tam_px, tam_px))
+    return surf
+
+def x_wing(tam_px=3):
+    surf = pygame.Surface((11 * tam_px, 7 * tam_px), pygame.SRCALPHA)
+    branco = (230, 230, 235)
+    vermelho = (220, 60, 60)
+    #corpo + nariz + asas
+    pygame.draw.rect(surf, branco, (2 * tam_px, 3 * tam_px, 8 * tam_px, tam_px))
+    pygame.draw.rect(surf, vermelho, (4 * tam_px, 3 * tam_px, 2 * tam_px, tam_px))
+    pygame.draw.rect(surf, branco, (1 * tam_px, 1 * tam_px, 4 * tam_px, tam_px))
+    pygame.draw.rect(surf, branco, (1 * tam_px, 5 * tam_px, 4 * tam_px, tam_px))
+    pygame.draw.rect(surf, vermelho, (0, 1 * tam_px, tam_px, tam_px))
+    pygame.draw.rect(surf, vermelho, (0, 5 * tam_px, tam_px, tam_px))
+    return surf
+
+tie_img = tie_fighter(tam_px=3)
+xwing_img = x_wing(tam_px=3)
+#lista de naves: [imagem, pos_x, pos_y, velocidade]
+naves = [
+    [tie_img, 100, 90, 1.3],
+    [xwing_img, -120, 320, 1.5],
+    [tie_img, 650, 390, 1.2],
+]
+
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
@@ -206,31 +296,55 @@ while game:
         if event.type == pygame.QUIT:
             game = False
 
+        #M muta/desmuta em qualquer tela
+        if event.type == pygame.KEYDOWN and event.key == pygame.K_m:
+            alternar_som()
+
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if tela_atual == "menu":
-                for texto, rect in botoes_menu:
+                for chave, rect in botoes_menu:
                     if rect.collidepoint(mouse_pos):
-                        if texto == "i n i c i a r":
+                        if chave == "iniciar":
                             tela_atual = "jogo"
-                        elif texto == "c o m o   j o g a r":
+                        elif chave == "como_jogar":
                             tela_atual = "como_jogar"
-                        elif texto == "c o n f i g u r a ç õ e s":
+                        elif chave == "configuracoes":
                             tela_atual = "configuracoes"
-                        elif texto == "s a i r":
+                        elif chave == "sair":
                             game = False
+
+            elif tela_atual == "configuracoes":
+                if botao_som.collidepoint(mouse_pos):
+                    alternar_som()
+                elif botao_idioma.collidepoint(mouse_pos):
+                    LINGUAGEM = "en" if LINGUAGEM == "pt" else "pt"
+                elif botao_voltar.collidepoint(mouse_pos):
+                    tela_atual = "menu"
+
+            elif tela_atual in ("como_jogar", "jogo"):
+                if botao_voltar.collidepoint(mouse_pos):
+                    tela_atual = "menu"
+
             else:
                 if botao_voltar.collidepoint(mouse_pos):
                     tela_atual = "menu"
 
     screen.fill(GALAXIA_COR)  #Preencher o fundo com a cor do espaço
 
+    for estrela in estrelas:
+        if random.random() < 0.03: #3% de chance por frame de mudar o brilho, efeito != estático (sugestão de IA)
+            estrela[3]
+        b = estrela[3]
+        pygame.draw.rect(screen, (b, b, b), (estrela[0], estrela[1], estrela[2], estrela[2]))
+    
 
     if tela_atual == "menu":
-        for estrela in estrelas:
-            if random.random() < 0.03: #3% de chance por frame de mudar o brilho, efeito != estático (sugestão de IA)
-                estrela[3]
-            b = estrela[3]
-            pygame.draw.rect(screen, (b, b, b), (estrela[0], estrela[1], estrela[2], estrela[2]))
+        for nave in naves:
+            nave[1] += nave[3] #soma v no eixo x
+            if nave[1] > 820: #quando sai pela direita, volta pela esquerda
+                nave[1] = -60
+                nave[2] = random.randint(40, 460)
+            screen.blit(nave[0], (nave[1], nave[2]))
 
 
         screen.blit(death_star_img, death_star_rect)  #Desenhar Death Star
@@ -262,29 +376,58 @@ while game:
 
 
         #botões do menu principal
-        for texto, rect in botoes_menu:
-            pygame.draw.rect(screen, (25, 28, 42), rect, border_radius=8)
-            pygame.draw.rect(screen, AMARELO_TITULO, rect, width=2, border_radius=8)
-            txt = fonte_botao.render(texto, False, AMARELO_TITULO)
-            txt_rect = txt.get_rect(center=(rect.centerx, rect.centery - 2))
-            screen.blit(txt, txt_rect)
+        for chave, rect in botoes_menu:
+            hover = rect.collidepoint(mouse_pos)
+            cor_fundo = (55, 62, 85) if hover else (25, 28, 42)
+            cor_borda = (255, 255, 130) if hover else AMARELO_TITULO
 
-        for texto, rect in botoes_menu:
-            if rect.collidepoint(mouse_pos):
-                hover = rect.collidepoint(mouse_pos)
-                cor_fundo = (55, 62, 85) if hover else (25, 28, 42)
-                cor_borda = (255, 255, 130) if hover else AMARELO_TITULO
+            pygame.draw.rect(screen, cor_fundo, rect, border_radius=8)
+            pygame.draw.rect(screen, cor_borda, rect, width=2, border_radius=8)
 
-                pygame.draw.rect(screen, cor_fundo, rect, border_radius=8)
-                pygame.draw.rect(screen, cor_borda, rect, width=2, border_radius=8)
-                txt = fonte_botao.render(texto, False, cor_borda)
-                screen.blit(txt, txt.get_rect(center=(rect.centerx, rect.centery - 2)))
+            texto_traduzido = TEXTOS[LINGUAGEM][chave]
+            txt = fonte_botao.render(texto_traduzido, False, cor_borda)
+            screen.blit(txt, txt.get_rect(center=(rect.centerx, rect.centery - 2)))
 
-    elif tela_atual in ("como_jogar", "configuracoes"):
-        pygame.draw.rect(screen, (25, 28, 42), botao_voltar, border_radius=8)
-        pygame.draw.rect(screen, AMARELO_TITULO, botao_voltar, width=2, border_radius=8)
-        txt = fonte_botao.render("voltar", False, AMARELO_TITULO)
-        screen.blit(txt, txt.get_rect(center=(botao_voltar.centerx, botao_voltar.centery - 2)))
+
+    elif tela_atual == "como_jogar": #ajuda de IA com tamanhos
+        painel = pygame.Rect(70, 100, 660, 340)
+        pygame.draw.rect(screen, (25, 28, 42), painel, border_radius=14)
+        pygame.draw.rect(screen, AMARELO_TITULO, painel, width=3, border_radius=14)
+
+        #linha divisória abaixo do título do painel
+        pygame.draw.line(screen, AMARELO_TITULO, (100, 175), (700, 175), 2)
+
+        titulo_tela = fonte_titulo_painel.render(TEXTOS[LINGUAGEM]["titulo_como"], False, AMARELO_TITULO)
+        screen.blit(titulo_tela, titulo_tela.get_rect(center=(400, 142)))
+
+        for i, linha in enumerate(TEXTOS[LINGUAGEM]["regras"]):
+            cor_linha = (255, 235, 130) if i == 3 else BRANCO
+            txt_regra = fonte_instrucoes.render(linha, True, cor_linha)
+            screen.blit(txt_regra, (105, 205 + i * 48))
+
+    elif tela_atual == "configuracoes":
+        painel = pygame.Rect(160, 140, 480, 280)
+        pygame.draw.rect(screen, (25, 28, 42), painel, border_radius=14)
+        pygame.draw.rect(screen, AMARELO_TITULO, painel, width=3, border_radius=14)
+
+        chave_som = "som_on" if som_ativo else "som_off"
+        for texto_botao, rect in ([(TEXTOS[LINGUAGEM][chave_som], botao_som), (TEXTOS[LINGUAGEM]["idioma"], botao_idioma)]):
+            hover = rect.collidepoint(mouse_pos)
+            cor_fundo = (55, 62, 85) if hover else (35, 39, 58)
+            cor_borda = (255, 255, 130) if hover else AMARELO_TITULO
+            pygame.draw.rect(screen, cor_fundo, rect, border_radius=8)
+            pygame.draw.rect(screen, cor_borda, rect, width=2, border_radius=8)
+            txt = fonte_botao.render(texto_botao, False, cor_borda)
+            screen.blit(txt, txt.get_rect(center=(rect.centerx, rect.centery - 2)))
+
+    if tela_atual != "menu":
+        hover_v = botao_voltar.collidepoint(mouse_pos)
+        cor_fundo = (55, 62, 85) if hover_v else (25, 28, 42)
+        cor_borda = (255, 255, 130) if hover_v else AMARELO_TITULO
+        pygame.draw.rect(screen, cor_fundo, botao_voltar, border_radius=8)
+        pygame.draw.rect(screen, cor_borda, botao_voltar, width=2, border_radius=8)
+        txt_v = fonte_botao.render(TEXTOS[LINGUAGEM]["voltar"], False, cor_borda)
+        screen.blit(txt_v, txt_v.get_rect(center=(botao_voltar.centerx, botao_voltar.centery - 2)))
 
     pygame.display.update()
 
