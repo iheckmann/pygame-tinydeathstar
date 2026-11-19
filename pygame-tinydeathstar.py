@@ -146,6 +146,7 @@ botao_voltar = pygame.Rect(300, 480, 200, 38)
 
 fonte_botao = pygame.font.Font("tiny-death-star/fontes/star_jedi/starjedi/Starjedi.ttf", 14)
 fonte_titulo_painel = pygame.font.Font("tiny-death-star/fontes/star_jedi/starjedi/Starjedi.ttf", 26)
+#fonte_creditos = pygame.font.Font("tiny-death-star/fontes/star_jedi/starjedi/Starjedi.ttf", 14)
 
 #som
 som_ativo = True 
@@ -279,7 +280,59 @@ naves = [
     [tie_img, 650, 390, 1.2],
 ]
 
+#botões elevador (ajuda de IA)
+def desenhar_seta_elevador(superficie, rect, direcao, pressionado=False):
+    #Moldura externa metálica cinza
+    pygame.draw.rect(superficie, (35, 42, 52), rect, border_radius=6)
+    pygame.draw.rect(superficie, (130, 145, 165), rect, width=3, border_radius=6)
+
+    #Interior azul (escurece um pouco quando estiver segurando o clique)
+    interno = rect.inflate(-10, -10)
+    cor_azul = (25, 75, 130) if pressionado else (35, 105, 175)
+    cor_borda_azul = (65, 145, 220) if pressionado else (95, 180, 250)
+    pygame.draw.rect(superficie, cor_azul, interno, border_radius=4)
+    pygame.draw.rect(superficie, cor_borda_azul, interno, width=2, border_radius=4)
+
+    #Seta pixelada azul claro no centro + 2 tracinhos (igual à imagem!)
+    cx, cy = interno.centerx, interno.centery
+    cor_seta = (145, 215, 255)
+    desloc = 2 if pressionado else 0  #Afunda 2px ao clicar
+
+    if direcao == "cima":
+        pontos = [(cx, cy - 12 + desloc), (cx - 12, cy + desloc), (cx + 12, cy + desloc)]
+        pygame.draw.polygon(superficie, cor_seta, pontos)
+        pygame.draw.rect(superficie, cor_seta, (cx - 6, cy + 3 + desloc, 12, 3))
+        pygame.draw.rect(superficie, cor_seta, (cx - 6, cy + 8 + desloc, 12, 3))
+    else:
+        pontos = [(cx, cy + 12 + desloc), (cx - 12, cy + desloc), (cx + 12, cy + desloc)]
+        pygame.draw.polygon(superficie, cor_seta, pontos)
+        pygame.draw.rect(superficie, cor_seta, (cx - 6, cy - 6 + desloc, 12, 3))
+        pygame.draw.rect(superficie, cor_seta, (cx - 6, cy - 11 + desloc, 12, 3))
+
+
+#COMIDA (andares)
+def carregar_cenario(caminho, largura=366, altura=121):
+    img = pygame.image.load(caminho).convert_alpha()
+    return pygame.transform.scale(img, (largura, altura))
+
+cenario_mos_espa = carregar_cenario("tiny-death-star/food/Mos_Espa_Cafe.png")
+#Arrivals
+cenario_arrivals = carregar_cenario("tiny-death-star/scenes/Blast_Doors.png")
+
+#Elevador:
+elevador_img = pygame.image.load("tiny-death-star/elevator/Standard_Elevator.png").convert_alpha()
+elevador_img = pygame.transform.scale(elevador_img, (54, 80))
+
+#P0 do elevador (parado no Andar 1 - Arrivals) + retângulos dos botões
+elevador_y = 425.0
+
+
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+
+
+
+
 
 
 
@@ -321,15 +374,19 @@ while game:
                 elif botao_voltar.collidepoint(mouse_pos):
                     tela_atual = "menu"
 
-            elif tela_atual in ("como_jogar", "jogo"):
+            elif tela_atual == "como_jogar":
                 if botao_voltar.collidepoint(mouse_pos):
                     tela_atual = "menu"
 
-            else:
-                if botao_voltar.collidepoint(mouse_pos):
+            elif tela_atual == "jogo":
+                if pygame.Rect(515, 558, 95, 34).collidepoint(mouse_pos):
                     tela_atual = "menu"
 
-    screen.fill(GALAXIA_COR)  #Preencher o fundo com a cor do espaço
+                
+
+
+
+    screen.fill(GALAXIA_COR) #Preencher o fundo com a cor do espaço
 
     for estrela in estrelas:
         if random.random() < 0.03: #3% de chance por frame de mudar o brilho, efeito != estático (sugestão de IA)
@@ -420,7 +477,72 @@ while game:
             txt = fonte_botao.render(texto_botao, False, cor_borda)
             screen.blit(txt, txt.get_rect(center=(rect.centerx, rect.centery - 2)))
 
-    if tela_atual != "menu":
+    elif tela_atual == "jogo":
+        #fundo escuro nas laterais + torre centralizada
+        screen.fill((38, 38, 42))
+        pygame.draw.rect(screen, (22, 25, 34), (180, 0, 440, 600))
+
+        #barra inferior escura
+        pygame.draw.rect(screen, (28, 30, 36), (180, 505, 440, 95))
+
+        #caixinha de Moedas
+        pygame.draw.rect(screen, (15, 18, 24), (190, 558, 150, 34), border_radius=4)
+        pygame.draw.circle(screen, AMARELO_TITULO, (206, 575), 9) #TROCAR POR IMG?? VER!!!
+        txt_moedas = fonte_botao.render("13,812", True, BRANCO)
+        screen.blit(txt_moedas, (225, 561))
+
+        #caixinha de Imperial Bux
+        pygame.draw.rect(screen, (15, 18, 24), (350, 558, 115, 34), border_radius=4)
+        #nota verde com detalhe mais claro no meio
+        pygame.draw.rect(screen, (55, 175, 65), (360, 566, 22, 16), border_radius=2)
+        pygame.draw.rect(screen, (125, 235, 120), (364, 570, 14, 8), border_radius=1)
+        txt_bux = fonte_botao.render("8", True, BRANCO)
+        screen.blit(txt_bux, (395, 561))
+
+
+        #botão verde MENU (canto inferior direito)
+        btn_menu_verde = pygame.Rect(515, 558, 95, 34)
+        pygame.draw.rect(screen, (65, 175, 55), btn_menu_verde, border_radius=6)
+        pygame.draw.rect(screen, (130, 235, 110), btn_menu_verde, width=2, border_radius=6)
+        txt_menu = fonte_instrucoes.render("MENU", True, BRANCO)
+        screen.blit(txt_menu, txt_menu.get_rect(center=btn_menu_verde.center))
+
+        #Poço do elevador (à esquerda: x=186 até 244)
+        pygame.draw.rect(screen, (26, 30, 38), (186, 65, 58, 440))
+        pygame.draw.line(screen, (65, 70, 82), (208, 65), (208, 505), 2)
+        pygame.draw.line(screen, (65, 70, 82), (222, 65), (222, 505), 2)
+        screen.blit(elevador_img, (188, int(elevador_y)))
+
+        #ANDAR: arrivals (y=360 até 505)
+        screen.blit(cenario_arrivals, (248, 384))
+        pygame.draw.rect(screen, (75, 85, 115), (248, 360, 366, 24))
+        txt_a1 = fonte_botao.render("arrivals", False, BRANCO)
+        screen.blit(txt_a1, txt_a1.get_rect(center=(431, 370)))
+
+        #ANDAR 2: Mos Espa Cafe (y=215 até 360)
+        screen.blit(cenario_mos_espa, (248, 239))
+
+        pygame.draw.rect(screen, (15, 18, 24), (205, 280, 20, 22), border_radius=3)
+        txt_n2 = fonte_botao.render("2", False, BRANCO)
+        screen.blit(txt_n2, txt_n2.get_rect(center=(215, 289)))
+        pygame.draw.rect(screen, (65, 78, 105), (248, 215, 366, 24))
+        txt_a2 = fonte_botao.render("mos espa cafe", False, (130, 235, 110))
+        screen.blit(txt_a2, txt_a2.get_rect(center=(431, 225)))
+
+        #Topo da torre + ADD LEVEL
+        pygame.draw.rect(screen, (95, 100, 112), (180, 175, 440, 40))
+        pygame.draw.line(screen, (145, 150, 165), (180, 175), (620, 175), 3)
+        btn_add = pygame.Rect(315, 95, 170, 52)
+        pygame.draw.rect(screen, (35, 38, 46), btn_add, border_radius=8)
+        pygame.draw.rect(screen, AMARELO_TITULO, btn_add, width=2, border_radius=8)
+        txt_add = fonte_botao.render("add level", False, BRANCO)
+        screen.blit(txt_add, txt_add.get_rect(center=(400, 112)))
+        txt_100 = fonte_botao.render("100", False, AMARELO_TITULO)
+        screen.blit(txt_100, txt_100.get_rect(center=(400, 132)))
+
+
+
+    if tela_atual in ("como_jogar", "configuracoes"):
         hover_v = botao_voltar.collidepoint(mouse_pos)
         cor_fundo = (55, 62, 85) if hover_v else (25, 28, 42)
         cor_borda = (255, 255, 130) if hover_v else AMARELO_TITULO
