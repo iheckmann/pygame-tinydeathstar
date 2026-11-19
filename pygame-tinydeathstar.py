@@ -240,7 +240,7 @@ guard = carregar_personagem("tiny-death-star/characters/troops/Royal_Gaurd.png",
 
 #ESTRELAS (fundo):
 estrelas = []
-for _ in range(75):
+for _ in range(150):
     x = random.randint(0, 800)
     y = random.randint(0, 515) #para no chão cinza (y = 520)
     tam = random.choice([2,3])
@@ -281,6 +281,11 @@ naves = [
 ]
 
 #botões elevador (ajuda de IA)
+#P0 do elevador (parado no Andar 1 - Arrivals) + retângulos dos botões
+elevador_y = 425.0
+botao_cima_rect = pygame.Rect(190, 508, 46, 44)
+botao_baixo_rect = pygame.Rect(242, 508, 46, 44)
+
 def desenhar_seta_elevador(superficie, rect, direcao, pressionado=False):
     #Moldura externa metálica cinza
     pygame.draw.rect(superficie, (35, 42, 52), rect, border_radius=6)
@@ -322,9 +327,6 @@ cenario_arrivals = carregar_cenario("tiny-death-star/scenes/Blast_Doors.png")
 #Elevador:
 elevador_img = pygame.image.load("tiny-death-star/elevator/Standard_Elevator.png").convert_alpha()
 elevador_img = pygame.transform.scale(elevador_img, (54, 80))
-
-#P0 do elevador (parado no Andar 1 - Arrivals) + retângulos dos botões
-elevador_y = 425.0
 
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -479,8 +481,14 @@ while game:
 
     elif tela_atual == "jogo":
         #fundo escuro nas laterais + torre centralizada
-        screen.fill((38, 38, 42))
-        pygame.draw.rect(screen, (22, 25, 34), (180, 0, 440, 600))
+        screen.fill(GALAXIA_COR)
+
+        for estrela in estrelas:
+            if random.random() < 0.03:
+                estrela[3] = random.randint(100,255)
+            b = estrela[3]
+            pygame.draw.rect(screen, (22, 25, 34), (180, 175, 440, 425))
+            pygame.draw.rect(screen, (b, b, b), (estrela[0], estrela[1], estrela[2], estrela[2]))
 
         #barra inferior escura
         pygame.draw.rect(screen, (28, 30, 36), (180, 505, 440, 95))
@@ -539,6 +547,16 @@ while game:
         screen.blit(txt_add, txt_add.get_rect(center=(400, 112)))
         txt_100 = fonte_botao.render("100", False, AMARELO_TITULO)
         screen.blit(txt_100, txt_100.get_rect(center=(400, 132)))
+
+        #setas
+        # Verifica se o jogador está segurando o clique em cada botão
+        clicando = pygame.mouse.get_pressed()[0]
+        segurando_cima = clicando and botao_cima_rect.collidepoint(mouse_pos)
+        segurando_baixo = clicando and botao_baixo_rect.collidepoint(mouse_pos)
+
+        desenhar_seta_elevador(screen, botao_cima_rect, "cima", segurando_cima)
+        desenhar_seta_elevador(screen, botao_baixo_rect, "baixo", segurando_baixo)
+
 
 
 
