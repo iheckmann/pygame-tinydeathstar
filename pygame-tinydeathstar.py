@@ -283,7 +283,6 @@ naves = [
 #botões elevador (ajuda de IA)
 #P0 do elevador (parado no Andar 1 - Arrivals) + retângulos dos botões
 elevador_y = 425.0
-elevador_vel = 0.5
 botao_cima_rect = pygame.Rect(190, 508, 46, 44)
 botao_baixo_rect = pygame.Rect(242, 508, 46, 44)
 
@@ -367,18 +366,22 @@ novos_andares_disponiveis = [
 
 andar_destino = random.randint(1, len(andares))
 
+#Verifica clique nos botoes azuis ou setas do teclado(cima/baixo) para subir/descender o elevador
+clicando = pygame.mouse.get_pressed()
+teclas = pygame.key.get_pressed()
 
-## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+subindo = (clicando and botao_cima_rect.collidepoint(mouse_pos)) or teclas[pygame.K_UP]
+descendo = (clicando and botao_baixo_rect.collidepoint(mouse_pos)) or teclas[pygame.K_DOWN]
 
+#Move o elevador entre o topo do Andar 2 (y=280) e o chão do Andar 1 (y=425)
+if subindo:
+    elevador_y = max(280.0, elevador_y - elevador_vel)
+if descendo:
+    elevador_y = min(425.0, elevador_y + elevador_vel)
 
-
-
-
-
-
-
-
-
+#Desenha os botões (já mostrando o efeito afundado mesmo se usar o teclado)
+desenhar_seta_elevador(screen, botao_cima_rect, "cima", subindo)
+desenhar_seta_elevador(screen, botao_baixo_rect, "baixo", descendo)
 
 
 #LOOP PRINCIPAL DO JOGO:
