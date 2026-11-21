@@ -283,6 +283,7 @@ naves = [
 #botões elevador (ajuda de IA)
 #P0 do elevador (parado no Andar 1 - Arrivals) + retângulos dos botões
 elevador_y = 425.0
+elevador_vel = 0.5
 botao_cima_rect = pygame.Rect(190, 508, 46, 44)
 botao_baixo_rect = pygame.Rect(242, 508, 46, 44)
 
@@ -327,6 +328,44 @@ cenario_arrivals = carregar_cenario("tiny-death-star/scenes/Blast_Doors.png")
 #Elevador:
 elevador_img = pygame.image.load("tiny-death-star/elevator/Standard_Elevator.png").convert_alpha()
 elevador_img = pygame.transform.scale(elevador_img, (54, 80))
+
+#MALU!!!!!!!!
+moedas = 0
+bux = 0
+
+#lista com personagens
+lista_passageiros = [
+    carregar_personagem("tiny-death-star/characters/men-of-the-rebellion/Luke_Skywalker.png", escala=0.6),
+    carregar_personagem("tiny-death-star/characters/ladies-of-the-rebellion/Leia_Organa_Rebel.png", escala=0.6),
+    carregar_personagem("tiny-death-star/characters/men-of-the-rebellion/Han_Solo.png", escala=0.6),
+    carregar_personagem("tiny-death-star/characters/droids/C-3PO.png", escala=0.6),
+    carregar_personagem("tiny-death-star/characters/bounty-hunters/Greedo.png", escala=0.6),
+    carregar_personagem("tiny-death-star/characters/rebel-heroes/Chewbacca.png", escala = 0.6),
+    carregar_personagem("tiny-death-star/characters/rebel-heroes/Admiral_Ackbar.png", escala = 0.6),
+    carregar_personagem("tiny-death-star/characters/rebel-heroes/Wicket.png", escala = 0.6),
+    carregar_personagem("tiny-death-star/characters/rebel-heroes/Nien_Nunb.png", escala = 0.6),
+    carregar_personagem("tiny-death-star/characters/bounty-hunters/Boba_Fett.png", escala = 0.6),
+]
+
+passageiro_atual = random.choice(lista_passageiros)
+tem_passageiro = True
+ja_moveu_elevador = False  #Evita errar antes mesmo de começar a subir
+clientes_no_andar = []     #Lista dos personagens caminhando e comprando nos andares
+
+custo_andar = 100
+
+#Lista dos andares já construídos na torre
+andares = [
+    {"nome": "arrivals", "cenario": cenario_arrivals, "cor_titulo": BRANCO},
+    {"nome": "mos espa cafe", "cenario": cenario_mos_espa, "cor_titulo": (130, 235, 110)},
+]
+
+#Novos andares que o jogador pode comprar ao clicar em ADD LEVEL
+novos_andares_disponiveis = [
+    {"nome": "christophsis apts", "cenario": cenario_arrivals, "cor_titulo": (130, 200, 255)}, # Troque o cenário quando tiver o PNG de apartamento!
+]
+
+andar_destino = random.randint(1, len(andares))
 
 
 ## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -383,6 +422,16 @@ while game:
             elif tela_atual == "jogo":
                 if pygame.Rect(515, 558, 95, 34).collidepoint(mouse_pos):
                     tela_atual = "menu"
+
+                #Calcula onde está o botão ADD LEVEL no topo atual da torre
+                y_topo_torre = 505 - len(andares) * 145
+                botao_add_rect = pygame.Rect(315, y_topo_torre - 80, 170, 52)
+
+                if botao_add_rect.collidepoint(mouse_pos):
+                    if moedas >= custo_andar and len(novos_andares_disponiveis) > 0:
+                        moedas -= custo_andar
+                        andares.append(novos_andares_disponiveis.pop(0))
+                        custo_andar += 100  # róximo andar custa 200, dps 300, etc
 
                 
 
@@ -484,10 +533,9 @@ while game:
         screen.fill(GALAXIA_COR)
 
         for estrela in estrelas:
-            if random.random() < 0.03:
+            if random.random() < 0.004:
                 estrela[3] = random.randint(100,255)
             b = estrela[3]
-            pygame.draw.rect(screen, (22, 25, 34), (180, 175, 440, 425))
             pygame.draw.rect(screen, (b, b, b), (estrela[0], estrela[1], estrela[2], estrela[2]))
 
         #barra inferior escura
@@ -496,7 +544,7 @@ while game:
         #caixinha de Moedas
         pygame.draw.rect(screen, (15, 18, 24), (190, 558, 150, 34), border_radius=4)
         pygame.draw.circle(screen, AMARELO_TITULO, (206, 575), 9) #TROCAR POR IMG?? VER!!!
-        txt_moedas = fonte_botao.render("13,812", True, BRANCO)
+        txt_moedas = fonte_botao.render(f"{moedas:,}", True, BRANCO)
         screen.blit(txt_moedas, (225, 561))
 
         #caixinha de Imperial Bux
@@ -515,49 +563,133 @@ while game:
         txt_menu = fonte_instrucoes.render("MENU", True, BRANCO)
         screen.blit(txt_menu, txt_menu.get_rect(center=btn_menu_verde.center))
 
-        #Poço do elevador (à esquerda: x=186 até 244)
+        #POÇO DO ELEVADOR (fundo do poço)
         pygame.draw.rect(screen, (26, 30, 38), (186, 65, 58, 440))
         pygame.draw.line(screen, (65, 70, 82), (208, 65), (208, 505), 2)
         pygame.draw.line(screen, (65, 70, 82), (222, 65), (222, 505), 2)
+
+        #CENÁRIOS DOS ANDARES (desenhados ANTES dos personagens para ficarem no fundo!)
+            #DESENHA TODOS OS ANDARES DA LISTA (de baixo para cima)
+        altura_andar = 145
+        for i, andar in enumerate(andares):
+            num_andar = i + 1
+            y_topo = 505 - num_andar * altura_andar
+
+            #Cenário e faixa de título do andar
+            screen.blit(andar["cenario"], (248, y_topo + 24))
+            pygame.draw.rect(screen, (65, 78, 105), (248, y_topo, 366, 24))
+            txt_nome = fonte_botao.render(andar["nome"], False, andar["cor_titulo"])
+            screen.blit(txt_nome, txt_nome.get_rect(center=(431, y_topo + 10)))
+
+            #Placa com o número do andar no poço do elevador (a partir do andar 2)
+            if num_andar >= 2:
+                pygame.draw.rect(screen, (15, 18, 24), (205, y_topo + 65, 20, 22), border_radius=3)
+                txt_num = fonte_botao.render(str(num_andar), False, BRANCO)
+                screen.blit(txt_num, txt_num.get_rect(center=(215, y_topo + 74)))
+
+        #TOPO DA TORRE + BOTÃO ADD LEVEL (sobe sozinho quando você constrói)
+        y_topo_torre = 505 - len(andares) * altura_andar
+        pygame.draw.rect(screen, (95, 100, 112), (180, y_topo_torre - 40, 440, 40))
+        pygame.draw.line(screen, (145, 150, 165), (180, y_topo_torre - 40), (620, y_topo_torre - 40), 3)
+
+        if len(novos_andares_disponiveis) > 0:
+            btn_add = pygame.Rect(315, y_topo_torre - 80, 170, 52)
+            cor_borda_add = AMARELO_TITULO if moedas >= custo_andar else (120, 120, 130)
+            pygame.draw.rect(screen, (35, 38, 46), btn_add, border_radius=8)
+            pygame.draw.rect(screen, cor_borda_add, btn_add, width=2, border_radius=8)
+            txt_add = fonte_botao.render("add level", False, BRANCO)
+            screen.blit(txt_add, txt_add.get_rect(center=(400, y_topo_torre - 63)))
+            txt_custo = fonte_botao.render(str(custo_andar), False, cor_borda_add)
+            screen.blit(txt_custo, txt_custo.get_rect(center=(400, y_topo_torre - 43)))
+
+
+        #MOVIMENTO DO ELEVADOR (agora com [0] no get_pressed)
+        clicando = pygame.mouse.get_pressed()[0]
+        teclas = pygame.key.get_pressed()
+
+        subindo = (clicando and botao_cima_rect.collidepoint(mouse_pos)) or teclas[pygame.K_UP]
+        descendo = (clicando and botao_baixo_rect.collidepoint(mouse_pos)) or teclas[pygame.K_DOWN]
+
+        #Limite superior do elevador acompanha o último andar construído
+        y_min_elevador = 505 - len(andares) * 145 + 65
+        if subindo:
+            elevador_y = max(float(y_min_elevador), elevador_y - elevador_vel)
+        if descendo:
+            elevador_y = min(425.0, elevador_y + elevador_vel)
+
+
+        # Desenha a cabine na altura atualizada
         screen.blit(elevador_img, (188, int(elevador_y)))
 
-        #ANDAR: arrivals (y=360 até 505)
-        screen.blit(cenario_arrivals, (248, 384))
-        pygame.draw.rect(screen, (75, 85, 115), (248, 360, 366, 24))
-        txt_a1 = fonte_botao.render("arrivals", False, BRANCO)
-        screen.blit(txt_a1, txt_a1.get_rect(center=(431, 370)))
+        #PASSAGEIRO NO ELEVADOR E DESEMBARQUE
+        if subindo or descendo:
+            ja_moveu_elevador = True
 
-        #ANDAR 2: Mos Espa Cafe (y=215 até 360)
-        screen.blit(cenario_mos_espa, (248, 239))
+        if tem_passageiro:
+            px = 188 + (54 - passageiro_atual.get_width()) // 2
+            py = int(elevador_y) + 60 - passageiro_atual.get_height()
+            screen.blit(passageiro_atual, (px, py))
 
-        pygame.draw.rect(screen, (15, 18, 24), (205, 280, 20, 22), border_radius=3)
-        txt_n2 = fonte_botao.render("2", False, BRANCO)
-        screen.blit(txt_n2, txt_n2.get_rect(center=(215, 289)))
-        pygame.draw.rect(screen, (65, 78, 105), (248, 215, 366, 24))
-        txt_a2 = fonte_botao.render("mos espa cafe", False, (130, 235, 110))
-        screen.blit(txt_a2, txt_a2.get_rect(center=(431, 225)))
+            balao_rect = pygame.Rect(197, int(elevador_y) - 24, 36, 20)
+            pygame.draw.rect(screen, BRANCO, balao_rect, border_radius=4)
+            pygame.draw.rect(screen, PRETO, balao_rect, width=2, border_radius=4)
+            txt_dest = fonte_botao.render(str(andar_destino), False, PRETO)
+            screen.blit(txt_dest, txt_dest.get_rect(center=(balao_rect.centerx, balao_rect.centery - 2)))
 
-        #Topo da torre + ADD LEVEL
-        pygame.draw.rect(screen, (95, 100, 112), (180, 175, 440, 40))
-        pygame.draw.line(screen, (145, 150, 165), (180, 175), (620, 175), 3)
-        btn_add = pygame.Rect(315, 95, 170, 52)
-        pygame.draw.rect(screen, (35, 38, 46), btn_add, border_radius=8)
-        pygame.draw.rect(screen, AMARELO_TITULO, btn_add, width=2, border_radius=8)
-        txt_add = fonte_botao.render("add level", False, BRANCO)
-        screen.blit(txt_add, txt_add.get_rect(center=(400, 112)))
-        txt_100 = fonte_botao.render("100", False, AMARELO_TITULO)
-        screen.blit(txt_100, txt_100.get_rect(center=(400, 132)))
+            if not subindo and not descendo and ja_moveu_elevador:
+                andar_parado = None
+                for i in range(len(andares)):
+                    y_piso_elevador = 505 - (i + 1) * 145 + 65
+                    if abs(elevador_y - y_piso_elevador) <= 8:
+                        andar_parado = i + 1
+                        break
 
-        #setas
-        # Verifica se o jogador está segurando o clique em cada botão
-        clicando = pygame.mouse.get_pressed()[0]
-        segurando_cima = clicando and botao_cima_rect.collidepoint(mouse_pos)
-        segurando_baixo = clicando and botao_baixo_rect.collidepoint(mouse_pos)
+                if andar_parado is not None:
+                    acertou = (andar_parado == andar_destino)
+                    y_chao = 505 - (andar_parado - 1) * 145
 
-        desenhar_seta_elevador(screen, botao_cima_rect, "cima", segurando_cima)
-        desenhar_seta_elevador(screen, botao_baixo_rect, "baixo", segurando_baixo)
+                    clientes_no_andar.append({
+                        "sprite": passageiro_atual,
+                        "x": 248.0,
+                        "y_chao": y_chao,
+                        "alvo_x": random.randint(390, 520) if acertou else 310,
+                        "acertou": acertou,
+                        "tempo_consumo": 90 if acertou else 30,
+                        "estado": "indo"
+                    })
+                    tem_passageiro = False
+                    ja_moveu_elevador = False
+        else:
+            if elevador_y >= 420 and not subindo:
+                passageiro_atual = random.choice(lista_passageiros)
+                andar_destino = random.randint(1, len(andares))
+                tem_passageiro = True
+                ja_moveu_elevador = False
 
 
+        # 5. ANIMAÇÃO DOS CLIENTES (desenhados POR CIMA dos cenários!)
+        for cliente in clientes_no_andar[:]:
+            if cliente["estado"] == "indo":
+                cliente["x"] += 1.5
+                if cliente["x"] >= cliente["alvo_x"]:
+                    cliente["estado"] = "consumindo"
+            elif cliente["estado"] == "consumindo":
+                cliente["tempo_consumo"] -= 1
+                if cliente["tempo_consumo"] <= 0:
+                    if cliente["acertou"]:
+                        moedas += 10
+                    cliente["estado"] = "saindo"
+            elif cliente["estado"] == "saindo":
+                cliente["x"] -= 1.5
+                if cliente["x"] <= 245:
+                    clientes_no_andar.remove(cliente)
+                    continue
+
+            screen.blit(cliente["sprite"], (int(cliente["x"]), cliente["y_chao"] - cliente["sprite"].get_height()))
+
+        #BOTÕES DO ELEVADOR
+        desenhar_seta_elevador(screen, botao_cima_rect, "cima", subindo)
+        desenhar_seta_elevador(screen, botao_baixo_rect, "baixo", descendo)
 
 
     if tela_atual in ("como_jogar", "configuracoes"):
