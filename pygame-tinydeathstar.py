@@ -577,11 +577,9 @@ while game:
             txt_nome = fonte_botao.render(andar["nome"], False, andar["cor_titulo"])
             screen.blit(txt_nome, txt_nome.get_rect(center=(431, y_topo + 10)))
 
-            #Placa com o número do andar no poço do elevador (a partir do andar 2)
-            if num_andar >= 2:
-                pygame.draw.rect(screen, (15, 18, 24), (205, y_topo + 65, 20, 22), border_radius=3)
-                txt_num = fonte_botao.render(str(num_andar), False, BRANCO)
-                screen.blit(txt_num, txt_num.get_rect(center=(215, y_topo + 74)))
+            pygame.draw.rect(screen, (15, 18, 24), (205, y_topo + 65, 20, 22), border_radius=3)
+            txt_num = fonte_botao.render(str(num_andar), False, BRANCO)
+            screen.blit(txt_num, txt_num.get_rect(center=(215, y_topo + 74)))
 
         #TOPO DA TORRE + BOTÃO ADD LEVEL (sobe sozinho quando você constrói)
         y_topo_torre = 505 - len(andares) * altura_andar
