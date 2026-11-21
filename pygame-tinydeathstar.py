@@ -282,7 +282,7 @@ naves = [
 
 #botões elevador (ajuda de IA)
 #P0 do elevador (parado no Andar 1 - Arrivals) + retângulos dos botões
-elevador_y = 425.0
+elevador_y = 0.5
 botao_cima_rect = pygame.Rect(190, 508, 46, 44)
 botao_baixo_rect = pygame.Rect(242, 508, 46, 44)
 
