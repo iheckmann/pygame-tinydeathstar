@@ -358,6 +358,15 @@ tem_passageiro = True
 ja_moveu_elevador = False  #Evita errar antes mesmo de começar a subir
 clientes_no_andar = []     #Lista dos personagens caminhando e comprando nos andares
 
+#para não repetir passageiros que já estão nos andares
+def sortear_passageiro_unico():
+    sprites_em_uso = [c["sprite"] for c in clientes_no_andar]
+    disponiveis = [p for p in lista_passageiros if p not in sprites_em_uso]
+    # Se todos os personagens da lista já estiverem nos andares, libera todos de novo
+    if not disponiveis:
+        disponiveis = lista_passageiros
+    return random.choice(disponiveis)
+
 custo_andar = 100
 
 #Lista dos andares já construídos na torre
@@ -365,7 +374,6 @@ andares = [
     {"nome": "arrivals", "cenario": cenario_arrivals, "cor_titulo": BRANCO},
     {"nome": "mos espa cafe", "cenario": cenario_mos_espa, "cor_titulo": (130, 235, 110)},
 ]
-
 #Novos andares que o jogador pode comprar ao clicar em ADD LEVEL
 novos_andares_disponiveis = [
     {"nome": "christophsis apts", "cenario": cenario_arrivals, "cor_titulo": (130, 200, 255)}, # Troque o cenário quando tiver o PNG de apartamento!
@@ -674,7 +682,7 @@ while game:
                 ja_moveu_elevador = False
 
 
-        # 5. ANIMAÇÃO DOS CLIENTES (suave, com pausas e virando para o lado certo)
+        #ANIMAÇÃO DOS CLIENTES (suave, com pausas e virando para o lado certo)
         for cliente in clientes_no_andar[:]:
             # Garante que as variáveis de direção e pausa existam
             if "virado_esq" not in cliente:
