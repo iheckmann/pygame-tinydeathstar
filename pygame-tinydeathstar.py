@@ -330,8 +330,8 @@ cenario_arrivals = carregar_cenario("tiny-death-star/scenes/Blast_Doors.png")
 elevador_img = pygame.image.load("tiny-death-star/elevator/Standard_Elevator.png").convert_alpha()
 elevador_img = pygame.transform.scale(elevador_img, (54, 80))
 
-moedas = 0
-bux = 0
+moedas = 100
+bux = 10
 
 #lista com personagens
 lista_passageiros = [
@@ -474,8 +474,8 @@ while game:
             elif tela_atual == "jogo":
                 #Se o painel do andar estiver aberto, verifica cliques nos cartões e no X
                 if andar_aberto is not None:
-                    btn_fechar = pygame.Rect(548, 412, 54, 34)
-                    if btn_fechar.collidepoint(mouse_pos):
+                    botao_fechar = pygame.Rect(548, 412, 54, 34)
+                    if botao_fechar.collidepoint(mouse_pos):
                         andar_aberto = None
                     else:
                         produtos = andares[andar_aberto]["produtos"]
@@ -635,16 +635,18 @@ while game:
 
 
         #botão verde MENU (canto inferior direito)
-        btn_menu_verde = pygame.Rect(515, 558, 95, 34)
-        pygame.draw.rect(screen, (65, 175, 55), btn_menu_verde, border_radius=6)
-        pygame.draw.rect(screen, (130, 235, 110), btn_menu_verde, width=2, border_radius=6)
+        botao_menu_verde = pygame.Rect(515, 558, 95, 34)
+        pygame.draw.rect(screen, (65, 175, 55), botao_menu_verde, border_radius=6)
+        pygame.draw.rect(screen, (130, 235, 110), botao_menu_verde, width=2, border_radius=6)
         txt_menu = fonte_instrucoes.render("MENU", True, BRANCO)
-        screen.blit(txt_menu, txt_menu.get_rect(center=btn_menu_verde.center))
+        screen.blit(txt_menu, txt_menu.get_rect(center=botao_menu_verde.center))
 
         #POÇO DO ELEVADOR (fundo do poço)
-        pygame.draw.rect(screen, (26, 30, 38), (186, 65, 58, 440))
-        pygame.draw.line(screen, (65, 70, 82), (208, 65), (208, 505), 2)
-        pygame.draw.line(screen, (65, 70, 82), (222, 65), (222, 505), 2)
+        y_topo_poco = 505 - len(andares) * 145
+        pygame.draw.rect(screen, (26, 30, 38), (186, y_topo_poco, 58, len(andares) * 145))
+        pygame.draw.line(screen, (65, 70, 82), (208, y_topo_poco), (208, 505), 2)
+        pygame.draw.line(screen, (65, 70, 82), (222, y_topo_poco), (222, 505), 2)
+
 
         #CENÁRIOS DOS ANDARES (desenhados ANTES dos personagens para ficarem no fundo!)
         #DESENHA TODOS OS ANDARES DA LISTA (de baixo para cima)
@@ -659,8 +661,17 @@ while game:
             txt_nome = fonte_botao.render(andar["nome"], False, andar["cor_titulo"])
             screen.blit(txt_nome, txt_nome.get_rect(center=(431, y_topo + 10)))
 
+            if andar.get("tipo") == "comercial" and len(andar["trabalhadores"]) == 0:
+                txt_closed = fonte_botao.render("closed", False, (255, 175, 50))
+                screen.blit(txt_closed, (530, y_topo + 2))
+            
+            elif andar.get("tipo") == "residencial":
+                txt_lot = fonte_instrucoes.render(f"{len(andar['moradores'])}/5", True, (150, 220, 255))
+                screen.blit(txt_lot, (565, y_topo + 1))
+
+
             #Indicadores visuais dos 3 produtos (igual ao print do jogo original!)
-            if "produtos" in andar:
+            elif "produtos" in andar:
                 falta_estoque = False
                 for idx_p, prod in enumerate(andar["produtos"]):
                     #3 quadradinhos no canto direito da barra de título (check verde, amarelo, X vermelho)
@@ -759,7 +770,16 @@ while game:
 
                 if andar_parado is not None:
                     acertou = (andar_parado == andar_destino)
+                    andar_obj = andares[andar_parado - 1]
                     y_chao = 505 - (andar_parado - 1) * 145
+
+                    # Se for andar RESIDENCIAL, ele se muda para lá (máximo 5 moradores)!
+                    if andar_obj.get("tipo") == "residencial" and len(andar_obj["moradores"]) < 5:
+                        andar_obj["moradores"].append({
+                            "sprite": passageiro_atual,
+                            "olha_dir": passageiro_olha_dir,
+                            "emprego": None
+                        })
 
                     clientes_no_andar.append({
                         "sprite": passageiro_atual,
@@ -773,6 +793,7 @@ while game:
                     })
                     tem_passageiro = False
                     ja_moveu_elevador = False
+
         else:
             if elevador_y >= 420 and not subindo:
                 passageiro_atual, passageiro_olha_dir = sortear_passageiro_unico()
@@ -859,11 +880,43 @@ while game:
 
         #Desenha o painel dos 3 produtos quando um andar for clicado
         if andar_aberto is not None:
-            andar_sel = andares[andar_aberto]
-            painel = pygame.Rect(184, 55, 432, 445)
-            # Fundo azul escuro com borda azul clara (igual ao print!)
-            pygame.draw.rect(screen, (18, 36, 76), painel, border_radius=10)
-            pygame.draw.rect(screen, (75, 145, 225), painel, width=3, border_radius=10)
+            botao_fechar = pygame.Rect(548, 412, 54, 34)
+            if botao_fechar.collidepoint(mouse_pos):
+                andar_aberto = None
+            else:
+                andar_sel = andares[andar_aberto]
+                painel = pygame.Rect(184, 55, 432, 445)
+                #Fundo azul escuro com borda azul clara (igual ao print!)
+                pygame.draw.rect(screen, (18, 36, 76), painel, border_radius=10)
+                pygame.draw.rect(screen, (75, 145, 225), painel, width=3, border_radius=10)
+                produtos = andar_sel["produtos"]
+                trabs = andar_sel["trabalhadores"]
+
+                for idx, prod in enumerate(produtos):
+                    box_esq = pygame.Rect(198, 104 + idx * 102, 74, 92)
+                    card_dir = pygame.Rect(280, 104 + idx * 102, 322, 92)
+
+                    #Clique na caixa da esquerda contrata um morador desempregado!
+                    if box_esq.collidepoint(mouse_pos) and idx >= len(trabs):
+                        for a in andares:
+                            if a.get("tipo") == "residencial":
+                                for m in a["moradores"]:
+                                    if m["emprego"] is None:
+                                        m["emprego"] = andar_sel["nome"]
+                                        trabs.append(m)
+                                        break
+                                if idx < len(trabs):
+                                    break
+
+                            #Só deixa encomendar (PLACE ORDER) se houver funcionário nesse slot!
+                            elif card_dir.collidepoint(mouse_pos) and idx < len(trabs):
+                                if prod["estoque"] == 0 and prod["tempo"] == 0:
+                                    prod["tempo"] = prod["duracao"]
+                                elif prod["tempo"] > 0 and bux >= 1:
+                                    bux -= 1
+                                    prod["tempo"] = 0
+                                    prod["estoque"] = prod["max"]
+
 
             #Cabeçalho do andar
             txt_p_titulo = fonte_botao.render(andar_sel["nome"], False, andar_sel["cor_titulo"])
@@ -878,7 +931,13 @@ while game:
                 box_esq = pygame.Rect(198, y_row, 74, 92)
                 pygame.draw.rect(screen, (25, 52, 95), box_esq, border_radius=6)
                 pygame.draw.rect(screen, (95, 175, 245), box_esq, width=2, border_radius=6)
-                screen.blit(prod["icone"], prod["icone"].get_rect(center=box_esq.center))
+                if idx < len(andar_sel["trabalhadores"]):
+                    trab = andar_sel["trabalhadores"][idx]
+                    sp = pygame.transform.scale(trab["sprite"], (trab["sprite"].get_width() * 2, trab["sprite"].get_height() * 2))
+                    screen.blit(sp, sp.get_rect(center=box_esq.center))
+                else:
+                    txt_hire = fonte_instrucoes.render("+ HIRE", True, (130, 210, 255))
+                    screen.blit(txt_hire, txt_hire.get_rect(center=box_esq.center))
 
                 #Cartão grande à direita (Vermelho PLACE ORDER, Amarelo 1 BUX ou Verde EM ESTOQUE)
                 card_dir = pygame.Rect(280, y_row, 322, 92)
