@@ -1,3 +1,4 @@
+import os
 import sys
 import random
 import pygame
@@ -353,7 +354,6 @@ lista_passageiros = [
     (carregar_personagem("tiny-death-star/characters/troops/TIE_Pilot.png", escala = 0.6), False),
 ]
 
-passageiro_atual, passageiro_olha_dir = random.choice(lista_passageiros)
 tem_passageiro = True
 ja_moveu_elevador = False  #Evita errar antes mesmo de começar a subir
 clientes_no_andar = []     #Lista dos personagens caminhando e comprando nos andares
@@ -367,17 +367,53 @@ def sortear_passageiro_unico():
         disponiveis = lista_passageiros
     return random.choice(disponiveis)
 
+passageiro_atual, passageiro_olha_dir = sortear_passageiro_unico()
+
 custo_andar = 100
+
+def carregar_icone_seguro(caminho, cor_reserva, tamanho=(40, 40)):
+    if os.path.exists(caminho):
+        img = pygame.image.load(caminho).convert_alpha()
+        return pygame.transform.scale(img, tamanho)
+    #desenha um ícone provisório caso o arquivo ainda não esteja na pasta
+    surf = pygame.Surface(tamanho, pygame.SRCALPHA)
+    pygame.draw.rect(surf, cor_reserva, (4, 4, tamanho[0] - 8, tamanho[1] - 8), border_radius=8)
+    pygame.draw.rect(surf, BRANCO, (4, 4, tamanho[0] - 8, tamanho[1] - 8), width=2, border_radius=8)
+    return surf
+
+ico_blue_milk = carregar_icone_seguro("tiny-death-star/food/Icon_Blue_Milk.png", (70, 175, 235))
+ico_womp_stew = carregar_icone_seguro("tiny-death-star/food/Icon_Womp_Rat_Stew.png", (195, 110, 60))
+ico_dustcrepe = carregar_icone_seguro("tiny-death-star/food/Icon_Dustcrepe.png", (225, 185, 75))
+
+andar_aberto = None  # Índice do andar clicado (ou None se nenhum estiver aberto)
 
 #Lista dos andares já construídos na torre
 andares = [
-    {"nome": "arrivals", "cenario": cenario_arrivals, "cor_titulo": BRANCO},
-    {"nome": "mos espa cafe", "cenario": cenario_mos_espa, "cor_titulo": (130, 235, 110)},
+    {"nome": "arrivals", "tipo": "saguao", "cenario": cenario_arrivals, "cor_titulo": BRANCO},
+    {
+        "nome": "mos espa cafe",
+        "tipo": "comercial",
+        "cenario": cenario_mos_espa,
+        "cor_titulo": (130, 235, 110),
+        "trabalhadores": [],  #Máximo de 3 funcionários (1 por produto)
+        "produtos": [
+            {"nome": "blue milk", "icone": ico_blue_milk, "estoque": 0, "max": 10, "tempo": 0, "duracao": 180},
+            {"nome": "womp rat stew", "icone": ico_womp_stew, "estoque": 0, "max": 100, "tempo": 0, "duracao": 360},
+            {"nome": "dustcrepe", "icone": ico_dustcrepe, "estoque": 0, "max": 300, "tempo": 0, "duracao": 600},
+        ]
+    },
 ]
-#Novos andares que o jogador pode comprar ao clicar em ADD LEVEL
+
 novos_andares_disponiveis = [
-    {"nome": "christophsis apts", "cenario": cenario_arrivals, "cor_titulo": (130, 200, 255)}, # Troque o cenário quando tiver o PNG de apartamento!
+    {
+        "nome": "christophsis apts",
+        "tipo": "residencial",
+        "cenario": cenario_arrivals,  #Troque pelo PNG residencial quando quiser
+        "cor_titulo": (130, 200, 255),
+        "moradores": []  #Máximo de 5 bitizens morando aqui!
+    },
 ]
+
 
 andar_destino = random.randint(1, len(andares))
 
@@ -436,18 +472,44 @@ while game:
                     tela_atual = "menu"
 
             elif tela_atual == "jogo":
-                if pygame.Rect(515, 558, 95, 34).collidepoint(mouse_pos):
-                    tela_atual = "menu"
+                #Se o painel do andar estiver aberto, verifica cliques nos cartões e no X
+                if andar_aberto is not None:
+                    btn_fechar = pygame.Rect(548, 412, 54, 34)
+                    if btn_fechar.collidepoint(mouse_pos):
+                        andar_aberto = None
+                    else:
+                        produtos = andares[andar_aberto]["produtos"]
+                        for idx, prod in enumerate(produtos):
+                            card_dir = pygame.Rect(280, 104 + idx * 102, 322, 92)
+                            if card_dir.collidepoint(mouse_pos):
+                                # Vazio e parado -> encomenda (PLACE ORDER)
+                                if prod["estoque"] == 0 and prod["tempo"] == 0:
+                                    prod["tempo"] = prod["duracao"]
+                                # Preparando -> gasta 1 Imperial Bux para concluir na hora
+                                elif prod["tempo"] > 0 and bux >= 1:
+                                    bux -= 1
+                                    prod["tempo"] = 0
+                                    prod["estoque"] = prod["max"]
 
-                #Calcula onde está o botão ADD LEVEL no topo atual da torre
-                y_topo_torre = 505 - len(andares) * 145
-                botao_add_rect = pygame.Rect(315, y_topo_torre - 80, 170, 52)
+                #Se nenhum painel estiver aberto, verifica cliques na torre
+                else:
+                    if pygame.Rect(515, 558, 95, 34).collidepoint(mouse_pos):
+                        tela_atual = "menu"
 
-                if botao_add_rect.collidepoint(mouse_pos):
-                    if moedas >= custo_andar and len(novos_andares_disponiveis) > 0:
-                        moedas -= custo_andar
-                        andares.append(novos_andares_disponiveis.pop(0))
-                        custo_andar += 100  # róximo andar custa 200, dps 300, etc
+                    y_topo_torre = 505 - len(andares) * 145
+                    botao_add_rect = pygame.Rect(315, y_topo_torre - 80, 170, 52)
+                    if botao_add_rect.collidepoint(mouse_pos):
+                        if moedas >= custo_andar and len(novos_andares_disponiveis) > 0:
+                            moedas -= custo_andar
+                            andares.append(novos_andares_disponiveis.pop(0))
+                            custo_andar += 100
+
+                    #Clicar em qualquer lugar do andar (ou no botão amarelo STOCK) abre o painel
+                    for i, andar in enumerate(andares):
+                        y_topo = 505 - (i + 1) * 145
+                        rect_andar = pygame.Rect(248, y_topo, 366, 145)
+                        if rect_andar.collidepoint(mouse_pos) and "produtos" in andar:
+                            andar_aberto = i
 
                 
 
@@ -568,7 +630,7 @@ while game:
         #nota verde com detalhe mais claro no meio
         pygame.draw.rect(screen, (55, 175, 65), (360, 566, 22, 16), border_radius=2)
         pygame.draw.rect(screen, (125, 235, 120), (364, 570, 14, 8), border_radius=1)
-        txt_bux = fonte_botao.render("8", True, BRANCO)
+        txt_bux = fonte_botao.render(str(bux), True, BRANCO)
         screen.blit(txt_bux, (395, 561))
 
 
@@ -585,7 +647,7 @@ while game:
         pygame.draw.line(screen, (65, 70, 82), (222, 65), (222, 505), 2)
 
         #CENÁRIOS DOS ANDARES (desenhados ANTES dos personagens para ficarem no fundo!)
-            #DESENHA TODOS OS ANDARES DA LISTA (de baixo para cima)
+        #DESENHA TODOS OS ANDARES DA LISTA (de baixo para cima)
         altura_andar = 145
         for i, andar in enumerate(andares):
             num_andar = i + 1
@@ -596,6 +658,43 @@ while game:
             pygame.draw.rect(screen, (65, 78, 105), (248, y_topo, 366, 24))
             txt_nome = fonte_botao.render(andar["nome"], False, andar["cor_titulo"])
             screen.blit(txt_nome, txt_nome.get_rect(center=(431, y_topo + 10)))
+
+            #Indicadores visuais dos 3 produtos (igual ao print do jogo original!)
+            if "produtos" in andar:
+                falta_estoque = False
+                for idx_p, prod in enumerate(andar["produtos"]):
+                    #3 quadradinhos no canto direito da barra de título (check verde, amarelo, X vermelho)
+                    box_mini = pygame.Rect(546 + idx_p * 21, y_topo + 3, 18, 18)
+                    if prod["estoque"] > 0:
+                        pygame.draw.rect(screen, (50, 175, 65), box_mini, border_radius=3)
+                        #Desenha um 'V' (check) branco
+                        pygame.draw.lines(screen, BRANCO, False, [
+                            (box_mini.x + 4, box_mini.y + 9),
+                            (box_mini.x + 8, box_mini.y + 13),
+                            (box_mini.x + 14, box_mini.y + 5)
+                        ], 2)
+                    elif prod["tempo"] > 0:
+                        pygame.draw.rect(screen, (220, 175, 40), box_mini, border_radius=3)
+                        txt_prep = fonte_instrucoes.render("..", True, PRETO)
+                        screen.blit(txt_prep, txt_prep.get_rect(center=box_mini.center))
+                    else:
+                        falta_estoque = True
+                        pygame.draw.rect(screen, (205, 45, 45), box_mini, border_radius=3)
+                        # Desenha um 'X' branco
+                        pygame.draw.line(screen, BRANCO, (box_mini.x + 4, box_mini.y + 4), (box_mini.right - 5, box_mini.bottom - 5), 2)
+                        pygame.draw.line(screen, BRANCO, (box_mini.right - 5, box_mini.y + 4), (box_mini.x + 4, box_mini.bottom - 5), 2)
+
+                #Botão quadrado amarelo com caixinha no canto direito do andar quando falta estoque!
+                if falta_estoque:
+                    btn_stock = pygame.Rect(560, y_topo + 30, 46, 46)
+                    pygame.draw.rect(screen, (30, 32, 38), btn_stock.inflate(4, 4), border_radius=6)
+                    pygame.draw.rect(screen, (150, 120, 20), btn_stock, border_radius=5)
+                    pygame.draw.rect(screen, (235, 205, 50), (btn_stock.x, btn_stock.y, 46, 42), border_radius=5)
+                    pygame.draw.rect(screen, (255, 240, 130), (btn_stock.x, btn_stock.y, 46, 42), width=2, border_radius=5)
+                    #Ícone de caixinha branca no meio do botão amarelo
+                    pygame.draw.rect(screen, BRANCO, (btn_stock.x + 13, btn_stock.y + 11, 20, 18), border_radius=2)
+                    pygame.draw.line(screen, (150, 120, 20), (btn_stock.x + 13, btn_stock.y + 17), (btn_stock.x + 33, btn_stock.y + 17), 2)
+
 
             pygame.draw.rect(screen, (15, 18, 24), (205, y_topo + 65, 20, 22), border_radius=3)
             txt_num = fonte_botao.render(str(num_andar), False, BRANCO)
@@ -676,7 +775,7 @@ while game:
                     ja_moveu_elevador = False
         else:
             if elevador_y >= 420 and not subindo:
-                passageiro_atual, passageiro_olha_dir = random.choice(lista_passageiros)
+                passageiro_atual, passageiro_olha_dir = sortear_passageiro_unico()
                 andar_destino = random.randint(1, len(andares))
                 tem_passageiro = True
                 ja_moveu_elevador = False
@@ -704,6 +803,14 @@ while game:
                         cliente["estado"] = "passeando"
                         cliente["pausa"] = random.randint(60, 150)  #Fica parado 1 a 2.5 seg
                         cliente["alvo_x"] = random.randint(275, 555)
+                        indice_andar = int((505 - cliente["y_chao"]) // 145)
+                        if 0 <= indice_andar < len(andares) and "produtos" in andares[indice_andar]:
+                            for prod in andares[indice_andar]["produtos"]:
+                                if prod["estoque"] > 0:
+                                    prod["estoque"] -= 1
+                                    moedas += 5
+                                    break
+
                     else:
                         cliente["estado"] = "saindo"
 
@@ -740,6 +847,94 @@ while game:
         #BOTÕES DO ELEVADOR
         desenhar_seta_elevador(screen, botao_cima_rect, "cima", subindo)
         desenhar_seta_elevador(screen, botao_baixo_rect, "baixo", descendo)
+
+        #Atualiza contagem regressiva dos itens em preparo
+        for andar in andares:
+            if "produtos" in andar:
+                for prod in andar["produtos"]:
+                    if prod["tempo"] > 0:
+                        prod["tempo"] -= 1
+                        if prod["tempo"] <= 0:
+                            prod["estoque"] = prod["max"]
+
+        #Desenha o painel dos 3 produtos quando um andar for clicado
+        if andar_aberto is not None:
+            andar_sel = andares[andar_aberto]
+            painel = pygame.Rect(184, 55, 432, 445)
+            # Fundo azul escuro com borda azul clara (igual ao print!)
+            pygame.draw.rect(screen, (18, 36, 76), painel, border_radius=10)
+            pygame.draw.rect(screen, (75, 145, 225), painel, width=3, border_radius=10)
+
+            #Cabeçalho do andar
+            txt_p_titulo = fonte_botao.render(andar_sel["nome"], False, andar_sel["cor_titulo"])
+            screen.blit(txt_p_titulo, txt_p_titulo.get_rect(center=(400, 80)))
+
+            #Os 3 cartões de produtos (fileiras 1, 2 e 3)
+            tempos_texto = ["1m", "4m", "8m"]
+            for idx, prod in enumerate(andar_sel["produtos"]):
+                y_row = 104 + idx * 102
+
+                #Caixinha à esquerda (ícone do item / funcionário)
+                box_esq = pygame.Rect(198, y_row, 74, 92)
+                pygame.draw.rect(screen, (25, 52, 95), box_esq, border_radius=6)
+                pygame.draw.rect(screen, (95, 175, 245), box_esq, width=2, border_radius=6)
+                screen.blit(prod["icone"], prod["icone"].get_rect(center=box_esq.center))
+
+                #Cartão grande à direita (Vermelho PLACE ORDER, Amarelo 1 BUX ou Verde EM ESTOQUE)
+                card_dir = pygame.Rect(280, y_row, 322, 92)
+                if prod["estoque"] > 0:
+                    cor_card, cor_topo, cor_borda = (35, 115, 55), (50, 145, 75), (110, 225, 130)
+                elif prod["tempo"] > 0:
+                    cor_card, cor_topo, cor_borda = (155, 120, 25), (185, 145, 35), (250, 220, 95)
+                else:
+                    cor_card, cor_topo, cor_borda = (145, 22, 28), (180, 35, 42), (235, 95, 105)
+
+                pygame.draw.rect(screen, cor_card, card_dir, border_radius=6)
+                pygame.draw.rect(screen, cor_topo, (card_dir.x, card_dir.y, card_dir.width, 24), border_radius=6)
+                pygame.draw.rect(screen, cor_borda, card_dir, width=2, border_radius=6)
+
+                #Nome do produto no topo + moedinhas (1, 2 ou 3 moedas)
+                txt_nome_p = fonte_instrucoes.render(prod["nome"].title(), True, BRANCO)
+                screen.blit(txt_nome_p, (card_dir.x + 12, card_dir.y + 1))
+                for m in range(idx + 1):
+                    pygame.draw.circle(screen, AMARELO_TITULO, (card_dir.right - 16 - m * 10, card_dir.y + 12), 7)
+                    pygame.draw.circle(screen, (185, 135, 0), (card_dir.right - 16 - m * 10, card_dir.y + 12), 7, 1)
+
+                #Linha do meio: Tempo e UNITS
+                txt_tempo = fonte_instrucoes.render(f"L {tempos_texto[idx]}", True, (255, 235, 140))
+                screen.blit(txt_tempo, (card_dir.x + 14, card_dir.y + 29))
+                txt_units = fonte_instrucoes.render(f"UNITS: {prod['estoque']}/{prod['max']}", True, BRANCO)
+                screen.blit(txt_units, (card_dir.right - txt_units.get_width() - 12, card_dir.y + 29))
+
+                #Botão 3D na parte de baixo do cartão (PLACE ORDER / 1 BUX / STOCKED)
+                btn_order = pygame.Rect(card_dir.x + 12, card_dir.y + 54, card_dir.width - 24, 30)
+                pygame.draw.rect(screen, (25, 25, 30), btn_order.move(0, 2), border_radius=4)
+                pygame.draw.rect(screen, cor_topo, btn_order, border_radius=4)
+                pygame.draw.rect(screen, cor_borda, btn_order, width=1, border_radius=4)
+
+                if prod["estoque"] > 0:
+                    label = "STOCKED"
+                elif prod["tempo"] > 0:
+                    label = "1 BUX TO FINISH"
+                else:
+                    label = "PLACE ORDER"
+                txt_btn = fonte_instrucoes.render(label, True, BRANCO)
+                screen.blit(txt_btn, txt_btn.get_rect(center=btn_order.center))
+
+            #Rodapé do painel (Total Skill / Rank: 1 + botão X vermelho)
+            rodape = pygame.Rect(198, 412, 340, 34)
+            pygame.draw.rect(screen, (28, 52, 105), rodape, border_radius=5)
+            txt_skill = fonte_instrucoes.render("Total Skill: 19   |   Rank: 1", True, (150, 210, 255))
+            screen.blit(txt_skill, txt_skill.get_rect(center=rodape.center))
+
+            #Botão X vermelho no canto inferior direito do painel
+            btn_fechar = pygame.Rect(548, 412, 54, 34)
+            pygame.draw.rect(screen, (195, 45, 45), btn_fechar, border_radius=6)
+            pygame.draw.rect(screen, (255, 130, 130), btn_fechar, width=2, border_radius=6)
+            txt_x = fonte_instrucoes.render("X", True, BRANCO)
+            screen.blit(txt_x, txt_x.get_rect(center=btn_fechar.center))
+
+
 
 
     if tela_atual in ("como_jogar", "configuracoes"):
