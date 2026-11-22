@@ -283,7 +283,7 @@ naves = [
 #botões elevador (ajuda de IA)
 #P0 do elevador (parado no Andar 1 - Arrivals) + retângulos dos botões
 elevador_y = 425.0
-elevador_vel = 0.5
+elevador_vel = 3.5
 botao_cima_rect = pygame.Rect(190, 508, 46, 44)
 botao_baixo_rect = pygame.Rect(242, 508, 46, 44)
 
@@ -334,19 +334,26 @@ bux = 0
 
 #lista com personagens
 lista_passageiros = [
-    carregar_personagem("tiny-death-star/characters/men-of-the-rebellion/Luke_Skywalker.png", escala=0.6),
-    carregar_personagem("tiny-death-star/characters/ladies-of-the-rebellion/Leia_Organa_Rebel.png", escala=0.6),
-    carregar_personagem("tiny-death-star/characters/men-of-the-rebellion/Han_Solo.png", escala=0.6),
-    carregar_personagem("tiny-death-star/characters/droids/C-3PO.png", escala=0.6),
-    carregar_personagem("tiny-death-star/characters/bounty-hunters/Greedo.png", escala=0.6),
-    carregar_personagem("tiny-death-star/characters/rebel-heroes/Chewbacca.png", escala = 0.6),
-    carregar_personagem("tiny-death-star/characters/rebel-heroes/Admiral_Ackbar.png", escala = 0.6),
-    carregar_personagem("tiny-death-star/characters/rebel-heroes/Wicket.png", escala = 0.6),
-    carregar_personagem("tiny-death-star/characters/rebel-heroes/Nien_Nunb.png", escala = 0.6),
-    carregar_personagem("tiny-death-star/characters/bounty-hunters/Boba_Fett.png", escala = 0.6),
+    (carregar_personagem("tiny-death-star/characters/men-of-the-rebellion/Luke_Skywalker.png", escala=0.6), True),
+    (carregar_personagem("tiny-death-star/characters/ladies-of-the-rebellion/Leia_Organa_Rebel.png", escala=0.6), True),
+    (carregar_personagem("tiny-death-star/characters/men-of-the-rebellion/Han_Solo.png", escala=0.6), True),
+    (carregar_personagem("tiny-death-star/characters/droids/C-3PO.png", escala=0.6), True),
+    (carregar_personagem("tiny-death-star/characters/bounty-hunters/Greedo.png", escala=0.6), False),
+    (carregar_personagem("tiny-death-star/characters/rebel-heroes/Chewbacca.png", escala = 0.6), True),
+    (carregar_personagem("tiny-death-star/characters/rebel-heroes/Admiral_Ackbar.png", escala = 0.6), True),
+    (carregar_personagem("tiny-death-star/characters/rebel-heroes/Wicket.png", escala = 0.6), True),
+    (carregar_personagem("tiny-death-star/characters/rebel-heroes/Nien_Nunb.png", escala = 0.6), True),
+    (carregar_personagem("tiny-death-star/characters/bounty-hunters/Boba_Fett.png", escala = 0.6), False),
+    (carregar_personagem("tiny-death-star/characters/troops/Stormtrooper.png", escala = 0.6), False),
+    (carregar_personagem("tiny-death-star/characters/troops/AT-AT_Pilot.png", escala = 0.6), False),
+    (carregar_personagem("tiny-death-star/characters/troops/Imperial_Gunner.png", escala = 0.6), False),
+    (carregar_personagem("tiny-death-star/characters/troops/Shadowtrooper.png", escala = 0.6), False),
+    (carregar_personagem("tiny-death-star/characters/troops/Snowtrooper.png", escala = 0.6), False),
+    (carregar_personagem("tiny-death-star/characters/troops/Swamptrooper.png", escala = 0.6), False),
+    (carregar_personagem("tiny-death-star/characters/troops/TIE_Pilot.png", escala = 0.6), False),
 ]
 
-passageiro_atual = random.choice(lista_passageiros)
+passageiro_atual, passageiro_olha_dir = random.choice(lista_passageiros)
 tem_passageiro = True
 ja_moveu_elevador = False  #Evita errar antes mesmo de começar a subir
 clientes_no_andar = []     #Lista dos personagens caminhando e comprando nos andares
@@ -369,8 +376,10 @@ andar_destino = random.randint(1, len(andares))
 #Verifica clique nos botoes azuis ou setas do teclado(cima/baixo) para subir/descender o elevador
 clicando = pygame.mouse.get_pressed()
 teclas = pygame.key.get_pressed()
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+
+
 
 
 
@@ -378,8 +387,11 @@ teclas = pygame.key.get_pressed()
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 #LOOP PRINCIPAL DO JOGO:
+clock = pygame.time.Clock() #para remover sensação de engasgo/bugs
+
 game = True
 while game:
+    clock.tick(60)
     mouse_pos = pygame.mouse.get_pos()
 
     for event in pygame.event.get():
@@ -612,7 +624,7 @@ while game:
             elevador_y = min(425.0, elevador_y + elevador_vel)
 
 
-        # Desenha a cabine na altura atualizada
+        #Desenha a cabine na altura atualizada
         screen.blit(elevador_img, (188, int(elevador_y)))
 
         #PASSAGEIRO NO ELEVADOR E DESEMBARQUE
@@ -644,6 +656,7 @@ while game:
 
                     clientes_no_andar.append({
                         "sprite": passageiro_atual,
+                        "olha_dir": passageiro_olha_dir,
                         "x": 248.0,
                         "y_chao": y_chao,
                         "alvo_x": random.randint(390, 520) if acertou else 310,
@@ -655,31 +668,66 @@ while game:
                     ja_moveu_elevador = False
         else:
             if elevador_y >= 420 and not subindo:
-                passageiro_atual = random.choice(lista_passageiros)
+                passageiro_atual, passageiro_olha_dir = random.choice(lista_passageiros)
                 andar_destino = random.randint(1, len(andares))
                 tem_passageiro = True
                 ja_moveu_elevador = False
 
 
-        # 5. ANIMAÇÃO DOS CLIENTES (desenhados POR CIMA dos cenários!)
+        # 5. ANIMAÇÃO DOS CLIENTES (suave, com pausas e virando para o lado certo)
         for cliente in clientes_no_andar[:]:
+            # Garante que as variáveis de direção e pausa existam
+            if "virado_esq" not in cliente:
+                cliente["virado_esq"] = False
+            if "pausa" not in cliente:
+                cliente["pausa"] = 0
+
             if cliente["estado"] == "indo":
-                cliente["x"] += 1.5
+                cliente["virado_esq"] = False
+                cliente["x"] += 1.0
                 if cliente["x"] >= cliente["alvo_x"]:
                     cliente["estado"] = "consumindo"
+
             elif cliente["estado"] == "consumindo":
                 cliente["tempo_consumo"] -= 1
                 if cliente["tempo_consumo"] <= 0:
                     if cliente["acertou"]:
                         moedas += 10
-                    cliente["estado"] = "saindo"
+                        cliente["estado"] = "passeando"
+                        cliente["pausa"] = random.randint(60, 150)  #Fica parado 1 a 2.5 seg
+                        cliente["alvo_x"] = random.randint(275, 555)
+                    else:
+                        cliente["estado"] = "saindo"
+
+            elif cliente["estado"] == "passeando":
+                if cliente["pausa"] > 0:
+                    cliente["pausa"] -= 1
+                else:
+                    distancia = cliente["alvo_x"] - cliente["x"]
+                    if abs(distancia) <= 2:
+                        # Chegou no ponto: para por 2 a 4 segundos antes de escolher outro canto
+                        cliente["pausa"] = random.randint(120, 240)
+                        cliente["alvo_x"] = random.randint(275, 555)
+                    elif distancia > 0:
+                        cliente["virado_esq"] = False
+                        cliente["x"] += 0.8
+                    else:
+                        cliente["virado_esq"] = True
+                        cliente["x"] -= 0.8
+
             elif cliente["estado"] == "saindo":
-                cliente["x"] -= 1.5
+                cliente["virado_esq"] = True
+                cliente["x"] -= 1.0
                 if cliente["x"] <= 245:
                     clientes_no_andar.remove(cliente)
                     continue
 
-            screen.blit(cliente["sprite"], (int(cliente["x"]), cliente["y_chao"] - cliente["sprite"].get_height()))
+            andando_esq = cliente["virado_esq"]
+            olha_dir = cliente.get("olha_dir", True)
+            precisa_espelhar = andando_esq if cliente["olha_dir"] else not andando_esq
+            sprite_desenho = pygame.transform.flip(cliente["sprite"], precisa_espelhar, False)
+            screen.blit(sprite_desenho, (int(cliente["x"]), cliente["y_chao"] - sprite_desenho.get_height()))
+
 
         #BOTÕES DO ELEVADOR
         desenhar_seta_elevador(screen, botao_cima_rect, "cima", subindo)
