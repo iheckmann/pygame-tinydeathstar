@@ -324,7 +324,7 @@ def carregar_cenario(caminho, largura=366, altura=121):
 
 cenario_mos_espa = carregar_cenario("tiny-death-star/food/Mos_Espa_Cafe.png")
 #Arrivals
-cenario_arrivals = carregar_cenario("tiny-death-star/scenes/Blast_Doors.png")
+cenario_arrivals = carregar_cenario("tiny-death-star/scenes/Blast_Doors.webp")
 
 #Elevador:
 elevador_img = pygame.image.load("tiny-death-star/elevator/Standard_Elevator.png").convert_alpha()
@@ -992,6 +992,7 @@ while game:
             pygame.draw.rect(screen, (255, 130, 130), btn_fechar, width=2, border_radius=6)
             txt_x = fonte_instrucoes.render("X", True, BRANCO)
             screen.blit(txt_x, txt_x.get_rect(center=btn_fechar.center))
+
 
 
 
