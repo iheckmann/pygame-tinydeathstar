@@ -579,6 +579,12 @@ def carregar_icone_seguro(caminho, cor_reserva, tamanho=(40, 40)):
     pygame.draw.rect(surf, BRANCO, (4, 4, tamanho[0] - 8, tamanho[1] - 8), width=2, border_radius=8)
     return surf
 
+def carregar_icone_produto(categoria, nome_produto):
+    nome_limpo = nome_produto.replace("-", " ")
+    nome_arquivo = "Icon_" + "_".join(p.capitalize() for p in nome_limpo.split()) + ".png"
+    caminho = f"tiny-death-star/{categoria}/{nome_arquivo}"
+    return carregar_icone_seguro(caminho, (70, 175, 235))
+
 ico_blue_milk = carregar_icone_seguro("tiny-death-star/food/Icon_Blue_Milk.png", (70, 175, 235))
 ico_womp_stew = carregar_icone_seguro("tiny-death-star/food/Icon_Womp_Rat_Stew.png", (195, 110, 60))
 ico_dustcrepe = carregar_icone_seguro("tiny-death-star/food/Icon_Dustcrepe.png", (225, 185, 75))
@@ -880,17 +886,17 @@ while game:
                                         "moradores": []
                                     })
                                 else:
-                                    icones_padrao = [ico_prod_1, ico_prod_2, ico_prod_3]
                                     lista_prods = []
-                                    for p_idx, (p_nome, p_max, p_dur) in enumerate(escolhido["produtos"]):
+                                    for p_nome, p_max, p_dur in escolhido["produtos"]:
                                         lista_prods.append({
                                             "nome": p_nome,
-                                            "icone": icones_padrao[p_idx],
+                                            "icone": carregar_icone_produto(chave_cat, p_nome),
                                             "estoque": 0,
                                             "max": p_max,
                                             "tempo": 0,
                                             "duracao": p_dur
                                         })
+
                                     andares.append({
                                         "nome": escolhido["nome"],
                                         "tipo": "comercial",
@@ -987,7 +993,7 @@ while game:
         if event.type == pygame.MOUSEWHEEL and tela_atual == "jogo":
             if andar_aberto is None and morador_selecionado is None and not escolhendo_novo_andar:
                 #Limita o scroll para não passar do chão (0) nem subir além do botão ADD LEVEL
-                max_scroll = max(0, (len(andares) * 145 + 220) - 505)
+                max_scroll = max(0, (len(andares) * 145 + 260) - 505)
                 scroll_y = max(0, min(max_scroll, scroll_y + event.y * 35))        
 
 
@@ -1169,11 +1175,9 @@ while game:
             txt_num = fonte_botao.render(str(num_andar), False, BRANCO)
             screen.blit(txt_num, txt_num.get_rect(center=(215, y_topo + 74)))
 
-        y_topo_torre = 505 - len(andares) * altura_andar + scroll_y
-
 
         #TOPO DA TORRE + BOTÃO ADD LEVEL (sobe sozinho quando você constrói)
-        y_topo_torre = 505 - len(andares) * altura_andar
+        y_topo_torre = 505 - len(andares) * altura_andar + scroll_y
         pygame.draw.rect(screen, (95, 100, 112), (180, y_topo_torre - 40, 440, 40))
         pygame.draw.line(screen, (145, 150, 165), (180, y_topo_torre - 40), (620, y_topo_torre - 40), 3)
 
@@ -1317,7 +1321,7 @@ while game:
                     cliente["tempo_vida"] = cliente.get("tempo_vida", 450) - 1
                     if cliente["tempo_vida"] <= 0:
                         cliente["estado"] = "saindo"
-                        
+
                     distancia = cliente["alvo_x"] - cliente["x"]
                     if abs(distancia) <= 2:
                         # Chegou no ponto: para por 2 a 4 segundos antes de escolher outro canto
