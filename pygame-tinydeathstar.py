@@ -796,11 +796,16 @@ def desenhar_botao_fechar(superficie, rect, mouse_pos):
     txt_x = fonte_painel.render("X", True, BRANCO)
     superficie.blit(txt_x, txt_x.get_rect(center=r.center))
 
+#SCROLL
+scroll_y = 0  #Deslocamento vertical da câmera (0 = base da torre, > 0 = subindo)
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 
 
 
+
+#           PARA MANTER ORGANIZADO!!
 
 
 
@@ -834,7 +839,6 @@ while game:
                             tela_atual = "configuracoes"
                         elif chave == "sair":
                             game = False
-
 
             elif tela_atual == "configuracoes":
                 if botao_som.collidepoint(mouse_pos):
@@ -966,8 +970,7 @@ while game:
                 else:
                     if pygame.Rect(515, 558, 95, 34).collidepoint(mouse_pos):
                         tela_atual = "menu"
-
-                    y_topo_torre = 505 - len(andares) * 145
+                    y_topo_torre = 505 - len(andares) * 145 + scroll_y
                     botao_add_rect = pygame.Rect(315, y_topo_torre - 80, 170, 52)
                     if botao_add_rect.collidepoint(mouse_pos):
                         if moedas >= custo_andar:
@@ -975,12 +978,17 @@ while game:
                     else:
                         #Clicar em qualquer andar Comercial OU Residencial abre o painel dele
                         for i, andar in enumerate(andares):
-                            y_topo = 505 - (i + 1) * 145
+                            y_topo = 505 - (i + 1) * 145 + scroll_y
                             rect_andar = pygame.Rect(248, y_topo, 366, 145)
                             if rect_andar.collidepoint(mouse_pos) and andar.get("tipo") in ("comercial", "residencial"):
                                 andar_aberto = i
 
-                
+
+        if event.type == pygame.MOUSEWHEEL and tela_atual == "jogo":
+            if andar_aberto is None and morador_selecionado is None and not escolhendo_novo_andar:
+                #Limita o scroll para não passar do chão (0) nem subir além do botão ADD LEVEL
+                max_scroll = max(0, (len(andares) * 145 + 120) - 505)
+                scroll_y = max(0, min(max_scroll, scroll_y + event.y * 35))        
 
 
 
@@ -1085,44 +1093,25 @@ while game:
             b = estrela[3]
             pygame.draw.rect(screen, (b, b, b), (estrela[0], estrela[1], estrela[2], estrela[2]))
 
-        #barra inferior escura
-        pygame.draw.rect(screen, (28, 30, 36), (180, 505, 440, 95))
-
-        #caixinha de Moedas
-        pygame.draw.rect(screen, (15, 18, 24), (190, 558, 150, 34), border_radius=4)
-        pygame.draw.circle(screen, AMARELO_TITULO, (206, 575), 9) #TROCAR POR IMG?? VER!!!
-        txt_moedas = fonte_botao.render(f"{moedas:,}", True, BRANCO)
-        screen.blit(txt_moedas, (225, 561))
-
-        #caixinha de Imperial Bux
-        pygame.draw.rect(screen, (15, 18, 24), (350, 558, 115, 34), border_radius=4)
-        #nota verde com detalhe mais claro no meio
-        pygame.draw.rect(screen, (55, 175, 65), (360, 566, 22, 16), border_radius=2)
-        pygame.draw.rect(screen, (125, 235, 120), (364, 570, 14, 8), border_radius=1)
-        txt_bux = fonte_botao.render(str(bux), True, BRANCO)
-        screen.blit(txt_bux, (395, 561))
-
-
-        #botão verde MENU (canto inferior direito)
-        botao_menu_verde = pygame.Rect(515, 558, 95, 34)
-        pygame.draw.rect(screen, (65, 175, 55), botao_menu_verde, border_radius=6)
-        pygame.draw.rect(screen, (130, 235, 110), botao_menu_verde, width=2, border_radius=6)
-        txt_menu = fonte_instrucoes.render("MENU", True, BRANCO)
-        screen.blit(txt_menu, txt_menu.get_rect(center=botao_menu_verde.center))
 
         #POÇO DO ELEVADOR (fundo do poço)
-        y_topo_poco = 505 - len(andares) * 145
-        pygame.draw.rect(screen, (26, 30, 38), (186, y_topo_poco, 58, len(andares) * 145))
-        pygame.draw.line(screen, (65, 70, 82), (208, y_topo_poco), (208, 505), 2)
-        pygame.draw.line(screen, (65, 70, 82), (222, y_topo_poco), (222, 505), 2)
+        #Base cinza da torre (desce quando você rola para cima)
+        pygame.draw.rect(screen, (40, 45, 60), (180, 505 + scroll_y, 440, 95))
+
+        #Poço do elevador
+        altura_andar = 145
+        y_topo_poco = 505 - len(andares) * altura_andar + scroll_y
+        y_base_poco = 505 + scroll_y
+        pygame.draw.rect(screen, (26, 30, 38), (186, y_topo_poco, 58, y_base_poco - y_topo_poco))
+        pygame.draw.line(screen, (65, 70, 82), (208, y_topo_poco), (208, y_base_poco), 2)
+        pygame.draw.line(screen, (65, 70, 82), (222, y_topo_poco), (222, y_base_poco), 2)
 
 
         #CENÁRIOS DOS ANDARES (desenhados ANTES dos personagens para ficarem no fundo!)
         #DESENHA TODOS OS ANDARES DA LISTA (de baixo para cima)
-        altura_andar = 145
         for i, andar in enumerate(andares):
             num_andar = i + 1
-            y_topo = 505 - num_andar * altura_andar
+            y_topo = 505 - num_andar * altura_andar + scroll_y
 
             #Cenário e faixa de título do andar
             screen.blit(andar["cenario"], (248, y_topo + 24))
@@ -1180,6 +1169,9 @@ while game:
             txt_num = fonte_botao.render(str(num_andar), False, BRANCO)
             screen.blit(txt_num, txt_num.get_rect(center=(215, y_topo + 74)))
 
+        y_topo_torre = 505 - len(andares) * altura_andar + scroll_y
+
+
         #TOPO DA TORRE + BOTÃO ADD LEVEL (sobe sozinho quando você constrói)
         y_topo_torre = 505 - len(andares) * altura_andar
         pygame.draw.rect(screen, (95, 100, 112), (180, y_topo_torre - 40, 440, 40))
@@ -1209,9 +1201,16 @@ while game:
         if descendo:
             elevador_y = min(425.0, elevador_y + elevador_vel)
 
+        #Câmera acompanha o elevador automaticamente ao subir ou descer
+        if subindo and elevador_y + scroll_y < 140:
+            max_scroll = max(0, (len(andares) * 145 + 120) - 505)
+            scroll_y = min(max_scroll, 140 - elevador_y)
+        elif descendo and elevador_y + scroll_y > 380:
+            scroll_y = max(0, 380 - elevador_y)
+
 
         #Desenha a cabine na altura atualizada
-        screen.blit(elevador_img, (188, int(elevador_y)))
+        screen.blit(elevador_img, (188, int(elevador_y + scroll_y)))
 
         #PASSAGEIRO NO ELEVADOR E DESEMBARQUE
         if subindo or descendo:
@@ -1219,7 +1218,7 @@ while game:
 
         if tem_passageiro:
             px = 188 + (54 - passageiro_atual.get_width()) // 2
-            py = int(elevador_y) + 60 - passageiro_atual.get_height()
+            py = int(elevador_y + scroll_y) + 60 - passageiro_atual.get_height()
             screen.blit(passageiro_atual, (px, py))
 
             balao_rect = pygame.Rect(197, int(elevador_y) - 24, 36, 20)
@@ -1334,8 +1333,32 @@ while game:
             olha_dir = cliente.get("olha_dir", True)
             precisa_espelhar = andando_esq if cliente["olha_dir"] else not andando_esq
             sprite_desenho = pygame.transform.flip(cliente["sprite"], precisa_espelhar, False)
-            screen.blit(sprite_desenho, (int(cliente["x"]), cliente["y_chao"] - sprite_desenho.get_height()))
+            screen.blit(sprite_desenho, (int(cliente["x"]), int(cliente["y_chao"] + scroll_y) - sprite_desenho.get_height()))
 
+        #barra inferior escura
+        pygame.draw.rect(screen, (28, 30, 36), (180, 505, 440, 95))
+
+        #caixinha de Moedas
+        pygame.draw.rect(screen, (15, 18, 24), (190, 558, 150, 34), border_radius=4)
+        pygame.draw.circle(screen, AMARELO_TITULO, (206, 575), 9) #TROCAR POR IMG?? VER!!!
+        txt_moedas = fonte_botao.render(f"{moedas:,}", True, BRANCO)
+        screen.blit(txt_moedas, (225, 561))
+
+        #caixinha de Imperial Bux
+        pygame.draw.rect(screen, (15, 18, 24), (350, 558, 115, 34), border_radius=4)
+        #nota verde com detalhe mais claro no meio
+        pygame.draw.rect(screen, (55, 175, 65), (360, 566, 22, 16), border_radius=2)
+        pygame.draw.rect(screen, (125, 235, 120), (364, 570, 14, 8), border_radius=1)
+        txt_bux = fonte_botao.render(str(bux), True, BRANCO)
+        screen.blit(txt_bux, (395, 561))
+
+
+        #botão verde MENU (canto inferior direito)
+        botao_menu_verde = pygame.Rect(515, 558, 95, 34)
+        pygame.draw.rect(screen, (65, 175, 55), botao_menu_verde, border_radius=6)
+        pygame.draw.rect(screen, (130, 235, 110), botao_menu_verde, width=2, border_radius=6)
+        txt_menu = fonte_instrucoes.render("MENU", True, BRANCO)
+        screen.blit(txt_menu, txt_menu.get_rect(center=botao_menu_verde.center))
 
         #BOTÕES DO ELEVADOR
         desenhar_seta_elevador(screen, botao_cima_rect, "cima", subindo)
