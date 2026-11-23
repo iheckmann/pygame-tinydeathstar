@@ -987,7 +987,7 @@ while game:
         if event.type == pygame.MOUSEWHEEL and tela_atual == "jogo":
             if andar_aberto is None and morador_selecionado is None and not escolhendo_novo_andar:
                 #Limita o scroll para não passar do chão (0) nem subir além do botão ADD LEVEL
-                max_scroll = max(0, (len(andares) * 145 + 120) - 505)
+                max_scroll = max(0, (len(andares) * 145 + 220) - 505)
                 scroll_y = max(0, min(max_scroll, scroll_y + event.y * 35))        
 
 
@@ -1203,7 +1203,7 @@ while game:
 
         #Câmera acompanha o elevador automaticamente ao subir ou descer
         if subindo and elevador_y + scroll_y < 140:
-            max_scroll = max(0, (len(andares) * 145 + 120) - 505)
+            max_scroll = max(0, (len(andares) * 145 + 220) - 505)
             scroll_y = min(max_scroll, 140 - elevador_y)
         elif descendo and elevador_y + scroll_y > 380:
             scroll_y = max(0, 380 - elevador_y)
@@ -1243,6 +1243,10 @@ while game:
                     # Se for andar RESIDENCIAL, ele se muda para lá (máximo 5 moradores)!
                     if andar_obj.get("tipo") == "residencial" and len(andar_obj["moradores"]) < 5:
                         dream_nome, skills_geradas = gerar_dream_job_e_skills()
+                    mudou_para_ca = False
+                    if andar_obj.get("tipo") == "residencial" and len(andar_obj["moradores"]) < 5:
+                        mudou_para_ca = True
+                        dream_nome, skills_geradas = gerar_dream_job_e_skills()
                         andar_obj["moradores"].append({
                             "nome": random.choice(NOMES_STAR_WARS),
                             "sprite": passageiro_atual,
@@ -1260,7 +1264,9 @@ while game:
                         "alvo_x": random.randint(390, 520) if acertou else 310,
                         "acertou": acertou,
                         "tempo_consumo": 90 if acertou else 30,
-                        "estado": "indo"
+                        "estado": "indo",
+                        "morador_aqui": mudou_para_ca,
+                        "tempo_vida": 450
                     })
                     tem_passageiro = False
                     ja_moveu_elevador = False
@@ -1307,9 +1313,11 @@ while game:
                         cliente["estado"] = "saindo"
 
             elif cliente["estado"] == "passeando":
-                if cliente["pausa"] > 0:
-                    cliente["pausa"] -= 1
-                else:
+                if not cliente.get("morador_aqui", False):
+                    cliente["tempo_vida"] = cliente.get("tempo_vida", 450) - 1
+                    if cliente["tempo_vida"] <= 0:
+                        cliente["estado"] = "saindo"
+                        
                     distancia = cliente["alvo_x"] - cliente["x"]
                     if abs(distancia) <= 2:
                         # Chegou no ponto: para por 2 a 4 segundos antes de escolher outro canto
