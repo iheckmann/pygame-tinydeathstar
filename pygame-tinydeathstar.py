@@ -417,7 +417,7 @@ cenario_kadavo_apts = carregar_cenario("tiny-death-star/residential/Kadavo_Apts.
 cenario_kamino_apts = carregar_cenario("tiny-death-star/residential/Kamino_Apts.png")
 cenario_kashyyyk_apts = carregar_cenario("tiny-death-star/residential/Kashyyyk_Apts.png")
 cenario_kiros_apts = carregar_cenario("tiny-death-star/residential/Kiros_Apts.png")
-cenario_lotho_apts = carregar_cenario("tiny-death-star/residential/Lotho_Apts.png")
+cenario_lotho_apts = carregar_cenario("tiny-death-star/residential/Lotho_Minor_Apts.png")
 cenario_mandalore_apts = carregar_cenario("tiny-death-star/residential/Mandalore_Apts.png")
 cenario_mon_cala_apts = carregar_cenario("tiny-death-star/residential/Mon_Cala_Apts.png")
 cenario_mustafar_apts = carregar_cenario("tiny-death-star/residential/Mustafar_Apts.png")
@@ -475,7 +475,7 @@ cenario_duct_repair = carregar_cenario("tiny-death-star/service/Duct_Repair.png"
 cenario_imperial_court = carregar_cenario("tiny-death-star/service/Imperial_Court.png")
 cenario_marriage_room = carregar_cenario("tiny-death-star/service/Marriage_Room.png")
 cenario_med_bay = carregar_cenario("tiny-death-star/service/Med_Bay.png")
-cenario_millennium_expr = carregar_cenario("tiny-death-star/service/Millenium_Expr.png")
+cenario_millennium_expr = carregar_cenario("tiny-death-star/service/Millennium_Expr.png")
 cenario_bacta_tanks = carregar_cenario("tiny-death-star/service/Bacta_Tanks.png")
 cenario_nightsisters = carregar_cenario("tiny-death-star/service/Nightsisters.png")
 cenario_panna_city_medicines = carregar_cenario("tiny-death-star/service/Panna_City_Medicines.png")
@@ -833,23 +833,53 @@ while game:
 
 
             elif tela_atual == "jogo":
-                #ESCOLHENDO O LOCAL DE TRABALHO (após clicar em JOB na ficha)
-                if escolhendo_emprego and morador_selecionado is not None:
+                #ESCOLHENDO O TIPO DE ANDAR
+                if escolhendo_novo_andar:
                     if pygame.Rect(548, 412, 54, 34).collidepoint(mouse_pos):
-                        escolhendo_emprego = False
+                        escolhendo_novo_andar = False
                     else:
-                        comerciais = [a for a in andares if a.get("tipo") == "comercial" and len(a["trabalhadores"]) < 3]
-                        for idx, c in enumerate(comerciais):
-                            botao_loc = pygame.Rect(210, 130 + idx * 75, 380, 62)
-                            if botao_loc.collidepoint(mouse_pos):
-                                #Remove do emprego anterior se já trabalhava em outro lugar
-                                for a in andares:
-                                    if a.get("tipo") == "comercial" and morador_selecionado in a["trabalhadores"]:
-                                        a["trabalhadores"].remove(morador_selecionado)
-                                morador_selecionado["emprego"] = c["nome"]
-                                c["trabalhadores"].append(morador_selecionado)
-                                escolhendo_emprego = False
-                                morador_selecionado = None
+                        for idx, (chave_cat, rotulo, cor_cat) in enumerate(OPCOES_CONSTRUCAO):
+                            botao_cat = pygame.Rect(215, 112 + idx * 56, 370, 46)
+                            if botao_cat.collidepoint(mouse_pos) and moedas >= custo_andar:
+                                moedas -= custo_andar
+                                custo_andar += 100
+
+                                # \Sorteia um andar daquela categoria que ainda não foi construído
+                                ja_construidos = [a["nome"] for a in andares]
+                                candidatos = [item for item in CATALOGO_ANDARES[chave_cat] if item["nome"] not in ja_construidos]
+                                escolhido = random.choice(candidatos if candidatos else CATALOGO_ANDARES[chave_cat])
+
+                                if chave_cat == "residencial":
+                                    andares.append({
+                                        "nome": escolhido["nome"],
+                                        "tipo": "residencial",
+                                        "cenario": escolhido["cenario"],
+                                        "cor_titulo": cor_cat,
+                                        "moradores": []
+                                    })
+                                else:
+                                    icones_padrao = [ico_prod_1, ico_prod_2, ico_prod_3]
+                                    lista_prods = []
+                                    for p_idx, (p_nome, p_max, p_dur) in enumerate(escolhido["produtos"]):
+                                        lista_prods.append({
+                                            "nome": p_nome,
+                                            "icone": icones_padrao[p_idx],
+                                            "estoque": 0,
+                                            "max": p_max,
+                                            "tempo": 0,
+                                            "duracao": p_dur
+                                        })
+                                    andares.append({
+                                        "nome": escolhido["nome"],
+                                        "tipo": "comercial",
+                                        "categoria": chave_cat,
+                                        "rank": 1,
+                                        "cenario": escolhido["cenario"],
+                                        "cor_titulo": cor_cat,
+                                        "trabalhadores": [],
+                                        "produtos": lista_prods
+                                    })
+                                escolhendo_novo_andar = False
                                 break
 
                 #FICHA DO BITIZEN (Current Job, Dream Job, Skills, JOB, EVICT)
@@ -903,13 +933,10 @@ while game:
                     y_topo_torre = 505 - len(andares) * 145
                     botao_add_rect = pygame.Rect(315, y_topo_torre - 80, 170, 52)
                     if botao_add_rect.collidepoint(mouse_pos):
-                        if moedas >= custo_andar and len(novos_andares_disponiveis) > 0:
-                            moedas -= custo_andar
-                            andares.append(novos_andares_disponiveis.pop(0))
-                            custo_andar += 100
-
-                    else:        
-                        #Clicar em qualquer andar Comercial OU Residencial abre o painel dele!
+                        if moedas >= custo_andar:
+                            escolhendo_novo_andar = True
+                    else:
+                        #Clicar em qualquer andar Comercial OU Residencial abre o painel dele
                         for i, andar in enumerate(andares):
                             y_topo = 505 - (i + 1) * 145
                             rect_andar = pygame.Rect(248, y_topo, 366, 145)
@@ -1121,15 +1148,14 @@ while game:
         pygame.draw.rect(screen, (95, 100, 112), (180, y_topo_torre - 40, 440, 40))
         pygame.draw.line(screen, (145, 150, 165), (180, y_topo_torre - 40), (620, y_topo_torre - 40), 3)
 
-        if len(novos_andares_disponiveis) > 0:
-            botao_add = pygame.Rect(315, y_topo_torre - 80, 170, 52)
-            cor_borda_add = AMARELO_TITULO if moedas >= custo_andar else (120, 120, 130)
-            pygame.draw.rect(screen, (35, 38, 46), botao_add, border_radius=8)
-            pygame.draw.rect(screen, cor_borda_add, botao_add, width=2, border_radius=8)
-            txt_add = fonte_botao.render("add level", False, BRANCO)
-            screen.blit(txt_add, txt_add.get_rect(center=(400, y_topo_torre - 63)))
-            txt_custo = fonte_botao.render(str(custo_andar), False, cor_borda_add)
-            screen.blit(txt_custo, txt_custo.get_rect(center=(400, y_topo_torre - 43)))
+        botao_add = pygame.Rect(315, y_topo_torre - 80, 170, 52)
+        cor_borda_add = AMARELO_TITULO if moedas >= custo_andar else (120, 120, 130)
+        pygame.draw.rect(screen, (35, 38, 46), botao_add, border_radius=8)
+        pygame.draw.rect(screen, cor_borda_add, botao_add, width=2, border_radius=8)
+        txt_add = fonte_botao.render("add level", False, BRANCO)
+        screen.blit(txt_add, txt_add.get_rect(center=(400, y_topo_torre - 63)))
+        txt_custo = fonte_botao.render(str(custo_andar), False, cor_borda_add)
+        screen.blit(txt_custo, txt_custo.get_rect(center=(400, y_topo_torre - 43)))
 
 
         #MOVIMENTO DO ELEVADOR (agora com [0] no get_pressed)
@@ -1292,11 +1318,34 @@ while game:
                         if prod["tempo"] <= 0:
                             prod["estoque"] = prod["max"]
 
-                ui = TEXTOS[LINGUAGEM]
+        ui = TEXTOS[LINGUAGEM]
         botao_fechar = pygame.Rect(548, 412, 54, 34)
 
-        # 1. TELA DE ESCOLHA DO LOCAL DE TRABALHO
-        if escolhendo_emprego and morador_selecionado is not None:
+        #PAINEL DE ESCOLHA DO TIPO DE ANDAR (ADD LEVEL)
+        if escolhendo_novo_andar:
+            painel = pygame.Rect(184, 55, 432, 406)
+            pygame.draw.rect(screen, (18, 36, 76), painel, border_radius=10)
+            pygame.draw.rect(screen, (75, 145, 225), painel, width=3, border_radius=10)
+
+            titulo_add = "BUILD NEW LEVEL" if LINGUAGEM == "en" else "CONSTRUIR NOVO ANDAR"
+            txt_t = fonte_painel.render(f"{titulo_add} ({custo_andar})", True, AMARELO_TITULO)
+            screen.blit(txt_t, txt_t.get_rect(center=(400, 84)))
+
+            for idx, (chave_cat, rotulo, cor_cat) in enumerate(OPCOES_CONSTRUCAO):
+                botao_cat = pygame.Rect(215, 112 + idx * 56, 370, 46)
+                hover_c = botao_cat.collidepoint(mouse_pos)
+                pygame.draw.rect(screen, (35, 68, 130) if hover_c else (25, 48, 95), botao_cat, border_radius=8)
+                pygame.draw.rect(screen, cor_cat, botao_cat, width=2, border_radius=8)
+
+                #Quadradinho colorido da categoria à esquerda
+                pygame.draw.rect(screen, cor_cat, (botao_cat.x + 12, botao_cat.y + 11, 24, 24), border_radius=4)
+                txt_cat = fonte_painel.render(rotulo, True, BRANCO)
+                screen.blit(txt_cat, (botao_cat.x + 50, botao_cat.y + 14))
+
+            desenhar_botao_fechar(screen, botao_fechar, mouse_pos)
+
+        #TELA DE ESCOLHA DO LOCAL DE TRABALHO
+        elif escolhendo_emprego and morador_selecionado is not None:
             painel = pygame.Rect(184, 55, 432, 406)
             pygame.draw.rect(screen, (18, 36, 76), painel, border_radius=10)
             pygame.draw.rect(screen, (75, 145, 225), painel, width=3, border_radius=10)
@@ -1319,7 +1368,7 @@ while game:
 
             desenhar_botao_fechar(screen, botao_fechar, mouse_pos)
 
-        # 2. FICHA DO BITIZEN (textos ajustados com fonte_painel para caberem perfeitamente!)
+        #FICHA DO BITIZEN
         elif morador_selecionado is not None:
             painel = pygame.Rect(184, 55, 432, 406)
             pygame.draw.rect(screen, (18, 36, 76), painel, border_radius=10)
@@ -1329,7 +1378,7 @@ while game:
             screen.blit(sp_g, (215, 70))
             screen.blit(fonte_instrucoes.render(morador_selecionado["nome"], True, BRANCO), (310, 82))
 
-            # Caixa Current Job / Dream Job (agora usando fonte_painel para não vazar da borda!)
+            #Caixa Current Job / Dream Job
             box_jobs = pygame.Rect(202, 152, 396, 62)
             pygame.draw.rect(screen, (25, 48, 95), box_jobs, border_radius=6)
             pygame.draw.rect(screen, (85, 155, 230), box_jobs, width=2, border_radius=6)
@@ -1339,7 +1388,7 @@ while game:
             screen.blit(fonte_painel.render(f"{ui['emp_atual']} {emp_atual_txt}", True, (130, 235, 110)), (214, 162))
             screen.blit(fonte_painel.render(f"{ui['emp_sonho']} {dream_txt}", True, AMARELO_TITULO), (214, 188))
 
-            # Barras de habilidade
+            #Barras de habilidade
             categorias_skill = [
                 ("FOOD", "food", (45, 155, 65)),
                 ("SERVICE", "service", (45, 125, 195)),
@@ -1357,7 +1406,7 @@ while game:
                 screen.blit(fonte_painel.render(rotulo, True, BRANCO), (212, y_b + 6))
                 screen.blit(fonte_painel.render(str(valor), True, BRANCO), (576, y_b + 6))
 
-            # Botões EMPREGO (JOB) e EXPULSAR (EVICT) com texto bem centralizado
+            #Botões EMPREGO (JOB) e EXPULSAR (EVICT)
             botao_job = pygame.Rect(275, 395, 115, 51)
             pygame.draw.rect(screen, (35, 130, 215), botao_job, border_radius=8)
             pygame.draw.rect(screen, (140, 215, 255), botao_job, width=2, border_radius=8)
@@ -1372,7 +1421,7 @@ while game:
 
             desenhar_botao_fechar(screen, botao_fechar, mouse_pos)
 
-        # 3. PAINEL DO ANDAR ABERTO (altura 406 sem espaço sobrando!)
+        #PAINEL DO ANDAR ABERTO (altura 406)
         elif andar_aberto is not None:
             andar_sel = andares[andar_aberto]
             painel = pygame.Rect(184, 55, 432, 406)
@@ -1382,7 +1431,7 @@ while game:
             txt_p_titulo = fonte_botao.render(andar_sel["nome"], False, andar_sel["cor_titulo"])
             screen.blit(txt_p_titulo, txt_p_titulo.get_rect(center=(400, 80)))
 
-            # --- SE FOR ANDAR RESIDENCIAL ---
+            #SE FOR ANDAR RESIDENCIAL
             if andar_sel.get("tipo") == "residencial":
                 for idx in range(5):
                     y_m = 102 + idx * 60
@@ -1481,7 +1530,7 @@ while game:
                 txt_skill = fonte_painel.render(f"{ui['habilidade']}: {skill_total}  |  Rank: {andar_sel.get('rank', 1)}", True, (150, 210, 255))
                 screen.blit(txt_skill, txt_skill.get_rect(center=rodape.center))
 
-            # Botão vermelho X (12 espaços — fora do elif comercial para aparecer no residencial também!)
+            #Botão vermelho X
             desenhar_botao_fechar(screen, botao_fechar, mouse_pos)
 
 
