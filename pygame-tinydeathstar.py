@@ -144,14 +144,15 @@ titulo = [
 tela_atual = "menu"  #ou "menu", "como_jogar", "configuracoes", "jogo"
 botao_voltar = pygame.Rect(300, 480, 200, 38)
 
-
+#FONTES
 fonte_botao = pygame.font.Font("tiny-death-star/fontes/star_jedi/starjedi/Starjedi.ttf", 14)
 fonte_titulo_painel = pygame.font.Font("tiny-death-star/fontes/star_jedi/starjedi/Starjedi.ttf", 26)
-#fonte_creditos = pygame.font.Font("tiny-death-star/fontes/star_jedi/starjedi/Starjedi.ttf", 14)
+fonte_instrucoes = pygame.font.SysFont("avenir", 20, bold=True)
+fonte_painel = pygame.font.SysFont("avenir", 14, bold=True)
+
 
 #som
 som_ativo = True 
-fonte_instrucoes = pygame.font.SysFont("avenir", 20, bold=True)
 
 TEXTOS = {
     "pt": {
@@ -172,7 +173,7 @@ TEXTOS = {
         ],
         "fechado": "fechado",
         "contratar": "+ vaga",
-        "contrate_antes": "CONTRATE ANTES",
+        "contratar_antes": "CONTRATAR ANTES",
         "encomendar": "ENCOMENDAR",
         "finalizar_bux": "1 BUX P/ TERMINAR",
         "estocado": "ESTOCADO",
@@ -181,8 +182,8 @@ TEXTOS = {
         "desempregado": "DESEMPREGADO",
         "emp_atual": "Emprego Atual:",
         "emp_sonho": "Emprego dos Sonhos:",
-        "btn_emprego": "EMPREGO",
-        "btn_expulsar": "EXPULSAR",
+        "botao_emprego": "EMPREGO",
+        "botao_expulsar": "EXPULSAR",
         "escolher_local": "ESCOLHA O LOCAL DE TRABALHO"
     },
     "en": {
@@ -203,7 +204,7 @@ TEXTOS = {
         ],
         "fechado": "closed",
         "contratar": "+ hire",
-        "contrate_antes": "HIRE WORKER FIRST",
+        "contratar_antes": "HIRE WORKER FIRST",
         "encomendar": "PLACE ORDER",
         "finalizar_bux": "1 BUX TO FINISH",
         "estocado": "STOCKED",
@@ -212,12 +213,16 @@ TEXTOS = {
         "desempregado": "UNEMPLOYED",
         "emp_atual": "Current Job:",
         "emp_sonho": "Dream Job:",
-        "btn_emprego": "JOB",
-        "btn_expulsar": "EVICT",
+        "botao_emprego": "JOB",
+        "botao_expulsar": "EVICT",
         "escolher_local": "SELECT WORKPLACE"
     }
     
 }
+
+NOMES_STAR_WARS = ["Rugor Medon", "Jango Nu", "Rom Ollie", "Adas Pavan", "Tyber Colton", "Kaye Tharen", "Dax Antilles", "Vek Solis"]
+morador_selecionado = None   #Guarda o morador clicado para abrir a ficha respectiva dele
+escolhendo_emprego = False   #True quando clicar em JOB na ficha do morador
 
 botao_som = pygame.Rect(210, 230, 380, 42)
 botao_idioma = pygame.Rect(210, 290, 380, 42)
@@ -459,6 +464,27 @@ andar_destino = sortear_andar_aberto()
 #Verifica clique nos botoes azuis ou setas do teclado(cima/baixo) para subir/descender o elevador
 clicando = pygame.mouse.get_pressed()
 teclas = pygame.key.get_pressed()
+
+#moedas
+def desenhar_moeda_mini(superficie, cx, cy):
+    #Moeda circular com borda dourada escura e detalhe interno
+    pygame.draw.circle(superficie, (180, 120, 0), (cx, cy), 7)
+    pygame.draw.circle(superficie, (255, 215, 0), (cx, cy), 6)
+    pygame.draw.line(superficie, (255, 248, 180), (cx, cy - 3), (cx, cy + 3), 2)
+
+def desenhar_botao_fechar(superficie, rect, mouse_pos):
+    hover = rect.collidepoint(mouse_pos)
+    clicando = hover and pygame.mouse.get_pressed()
+    cor_fundo = (145, 25, 25) if clicando else ((235, 65, 65) if hover else (195, 45, 45))
+    cor_borda = (255, 200, 200) if hover else (255, 130, 130)
+    desloc_y = 2 if clicando else 0
+
+    r = rect.move(0, desloc_y)
+    pygame.draw.rect(superficie, cor_fundo, r, border_radius=6)
+    pygame.draw.rect(superficie, cor_borda, r, width=2, border_radius=6)
+    txt_x = fonte_painel.render("X", True, BRANCO)
+    superficie.blit(txt_x, txt_x.get_rect(center=r.center))
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 
@@ -474,7 +500,7 @@ clock = pygame.time.Clock() #para remover sensação de engasgo/bugs
 
 game = True
 while game:
-    clock.tick(60)
+    clock.tick(60) #60 fps
     mouse_pos = pygame.mouse.get_pos()
 
     for event in pygame.event.get():
@@ -498,6 +524,7 @@ while game:
                         elif chave == "sair":
                             game = False
 
+
             elif tela_atual == "configuracoes":
                 if botao_som.collidepoint(mouse_pos):
                     alternar_som()
@@ -506,32 +533,76 @@ while game:
                 elif botao_voltar.collidepoint(mouse_pos):
                     tela_atual = "menu"
 
+
             elif tela_atual == "como_jogar":
                 if botao_voltar.collidepoint(mouse_pos):
                     tela_atual = "menu"
 
+
             elif tela_atual == "jogo":
-                #Se o painel do andar estiver aberto, verifica cliques nos cartões e no X
-                if andar_aberto is not None:
-                    botao_fechar = pygame.Rect(548, 412, 54, 34)
-                    if botao_fechar.collidepoint(mouse_pos):
-                        andar_aberto = None
+                #TELA A: ESCOLHENDO O LOCAL DE TRABALHO (após clicar em JOB na ficha)
+                if escolhendo_emprego and morador_selecionado is not None:
+                    if pygame.Rect(548, 412, 54, 34).collidepoint(mouse_pos):
+                        escolhendo_emprego = False
                     else:
-                        produtos = andares[andar_aberto]["produtos"]
-                        for idx, prod in enumerate(produtos):
+                        comerciais = [a for a in andares if a.get("tipo") == "comercial" and len(a["trabalhadores"]) < 3]
+                        for idx, c in enumerate(comerciais):
+                            botao_loc = pygame.Rect(210, 130 + idx * 75, 380, 62)
+                            if botao_loc.collidepoint(mouse_pos):
+                                #Remove do emprego anterior se já trabalhava em outro lugar
+                                for a in andares:
+                                    if a.get("tipo") == "comercial" and morador_selecionado in a["trabalhadores"]:
+                                        a["trabalhadores"].remove(morador_selecionado)
+                                morador_selecionado["emprego"] = c["nome"]
+                                c["trabalhadores"].append(morador_selecionado)
+                                escolhendo_emprego = False
+                                morador_selecionado = None
+                                break
+
+                #TELA B: FICHA DO BITIZEN (Current Job, Dream Job, Skills, JOB, EVICT)
+                elif morador_selecionado is not None:
+                    if pygame.Rect(548, 412, 54, 34).collidepoint(mouse_pos):
+                        morador_selecionado = None
+                    #Botão JOB (abrir lista de empregos)
+                    elif pygame.Rect(275, 395, 115, 55).collidepoint(mouse_pos):
+                        escolhendo_emprego = True
+                    #Botão EVICT (expulsar morador)
+                    elif pygame.Rect(410, 395, 115, 55).collidepoint(mouse_pos):
+                        for a in andares:
+                            if a.get("tipo") == "comercial" and morador_selecionado in a["trabalhadores"]:
+                                a["trabalhadores"].remove(morador_selecionado)
+                            if a.get("tipo") == "residencial" and morador_selecionado in a["moradores"]:
+                                a["moradores"].remove(morador_selecionado)
+                        morador_selecionado = None
+
+                #TELA C: PAINEL DE UM ANDAR ABERTO (Comercial ou Residencial)
+                elif andar_aberto is not None:
+                    andar_sel = andares[andar_aberto]
+                    if pygame.Rect(548, 412, 54, 34).collidepoint(mouse_pos):
+                        andar_aberto = None
+
+                    #Se clicou em um ANDAR RESIDENCIAL -> abre a ficha do morador clicado
+                    elif andar_sel.get("tipo") == "residencial":
+                        for idx, m in enumerate(andar_sel["moradores"]):
+                            card_m = pygame.Rect(202, 102 + idx * 60, 396, 54)
+                            if card_m.collidepoint(mouse_pos):
+                                morador_selecionado = m
+                                break
+
+                    #Se clicou em um ANDAR COMERCIAL -> encomenda produto (se houver funcionário)
+                    elif andar_sel.get("tipo") == "comercial":
+                        trabs = andar_sel["trabalhadores"]
+                        for idx, prod in enumerate(andar_sel["produtos"]):
                             card_dir = pygame.Rect(280, 104 + idx * 102, 322, 92)
-                            
-                            if card_dir.collidepoint(mouse_pos):
-                                # Vazio e parado -> encomenda (PLACE ORDER)
+                            if card_dir.collidepoint(mouse_pos) and idx < len(trabs):
                                 if prod["estoque"] == 0 and prod["tempo"] == 0:
                                     prod["tempo"] = prod["duracao"]
-                                # Preparando -> gasta 1 Imperial Bux para concluir na hora
                                 elif prod["tempo"] > 0 and bux >= 1:
                                     bux -= 1
                                     prod["tempo"] = 0
                                     prod["estoque"] = prod["max"]
 
-                #Se nenhum painel estiver aberto, verifica cliques na torre
+                #TELA D: CLIQUES NORMAIS NA TORRE
                 else:
                     if pygame.Rect(515, 558, 95, 34).collidepoint(mouse_pos):
                         tela_atual = "menu"
@@ -544,11 +615,11 @@ while game:
                             andares.append(novos_andares_disponiveis.pop(0))
                             custo_andar += 100
 
-                    #Clicar em qualquer lugar do andar (ou no botão amarelo STOCK) abre o painel
+                    #Clicar em qualquer andar Comercial OU Residencial abre o painel dele!
                     for i, andar in enumerate(andares):
                         y_topo = 505 - (i + 1) * 145
                         rect_andar = pygame.Rect(248, y_topo, 366, 145)
-                        if rect_andar.collidepoint(mouse_pos) and "produtos" in andar:
+                        if rect_andar.collidepoint(mouse_pos) and andar.get("tipo") in ("comercial", "residencial"):
                             andar_aberto = i
 
                 
@@ -816,16 +887,19 @@ while game:
                     # Se for andar RESIDENCIAL, ele se muda para lá (máximo 5 moradores)!
                     if andar_obj.get("tipo") == "residencial" and len(andar_obj["moradores"]) < 5:
                         andar_obj["moradores"].append({
+                            "nome": random.choice(NOMES_STAR_WARS),
                             "sprite": passageiro_atual,
                             "olha_dir": passageiro_olha_dir,
                             "emprego": None,
+                            "dream_job": "mos espa cafe",
                             "skills": {
-                                "food": random.randint(1, 9), #sorteia # de habilidade que um morador pode ter, ajuda nos empregos, etc
+                                "food": random.randint(1, 9),
                                 "service": random.randint(1, 9),
                                 "recreation": random.randint(1, 9),
                                 "retail": random.randint(1, 9),
                             }
                         })
+
 
                     clientes_no_andar.append({
                         "sprite": passageiro_atual,
@@ -924,91 +998,166 @@ while game:
                         if prod["tempo"] <= 0:
                             prod["estoque"] = prod["max"]
 
-        #Desenha o painel dos 3 produtos quando um andar for clicado
-        if andar_aberto is not None:
-            andar_sel = andares[andar_aberto]
-            painel = pygame.Rect(184, 55, 432, 445)
+                ui = TEXTOS[LINGUAGEM]
+        botao_fechar = pygame.Rect(548, 412, 54, 34)
+
+        # 1. TELA DE ESCOLHA DO LOCAL DE TRABALHO
+        if escolhendo_emprego and morador_selecionado is not None:
+            painel = pygame.Rect(184, 55, 432, 406)
             pygame.draw.rect(screen, (18, 36, 76), painel, border_radius=10)
             pygame.draw.rect(screen, (75, 145, 225), painel, width=3, border_radius=10)
 
-            #Cabeçalho do andar
+            txt_t = fonte_painel.render(ui["escolher_local"], True, AMARELO_TITULO)
+            screen.blit(txt_t, txt_t.get_rect(center=(400, 88)))
+
+            comerciais = [a for a in andares if a.get("tipo") == "comercial" and len(a["trabalhadores"]) < 3]
+            for idx, c in enumerate(comerciais):
+                botao_loc = pygame.Rect(210, 125 + idx * 72, 380, 58)
+                eh_sonho = (c["nome"] == morador_selecionado["dream_job"])
+                cor_b = AMARELO_TITULO if eh_sonho else (95, 175, 245)
+                pygame.draw.rect(screen, (28, 56, 110), botao_loc, border_radius=8)
+                pygame.draw.rect(screen, cor_b, botao_loc, width=2, border_radius=8)
+
+                txt_c = fonte_botao.render(c["nome"], False, c["cor_titulo"])
+                screen.blit(txt_c, (botao_loc.x + 16, botao_loc.y + 8))
+                txt_vagas = fonte_painel.render(f"Vagas: {len(c['trabalhadores'])}/3", True, BRANCO)
+                screen.blit(txt_vagas, (botao_loc.x + 16, botao_loc.y + 33))
+
+            desenhar_botao_fechar(screen, botao_fechar, mouse_pos)
+
+        # 2. FICHA DO BITIZEN (textos ajustados com fonte_painel para caberem perfeitamente!)
+        elif morador_selecionado is not None:
+            painel = pygame.Rect(184, 55, 432, 406)
+            pygame.draw.rect(screen, (18, 36, 76), painel, border_radius=10)
+            pygame.draw.rect(screen, (75, 145, 225), painel, width=3, border_radius=10)
+
+            sp_g = pygame.transform.scale(morador_selecionado["sprite"], (morador_selecionado["sprite"].get_width() * 3, morador_selecionado["sprite"].get_height() * 3))
+            screen.blit(sp_g, (215, 70))
+            screen.blit(fonte_instrucoes.render(morador_selecionado["nome"], True, BRANCO), (310, 82))
+
+            # Caixa Current Job / Dream Job (agora usando fonte_painel para não vazar da borda!)
+            box_jobs = pygame.Rect(202, 152, 396, 62)
+            pygame.draw.rect(screen, (25, 48, 95), box_jobs, border_radius=6)
+            pygame.draw.rect(screen, (85, 155, 230), box_jobs, width=2, border_radius=6)
+
+            emp_atual_txt = (morador_selecionado["emprego"] or ui["desempregado"]).upper()
+            dream_txt = morador_selecionado["dream_job"].upper()
+            screen.blit(fonte_painel.render(f"{ui['emp_atual']} {emp_atual_txt}", True, (130, 235, 110)), (214, 162))
+            screen.blit(fonte_painel.render(f"{ui['emp_sonho']} {dream_txt}", True, AMARELO_TITULO), (214, 188))
+
+            # Barras de habilidade
+            categorias_skill = [
+                ("FOOD", "food", (45, 155, 65)),
+                ("SERVICE", "service", (45, 125, 195)),
+                ("RECREATION", "recreation", (185, 165, 45)),
+                ("RETAIL", "retail", (155, 65, 185)),
+            ]
+            for idx_s, (rotulo, chave, cor_barra) in enumerate(categorias_skill):
+                y_b = 226 + idx_s * 38
+                valor = morador_selecionado["skills"][chave]
+                pygame.draw.rect(screen, (25, 38, 68), (202, y_b, 396, 30), border_radius=4)
+                larg_preenchida = int(350 * (valor / 9.0))
+                pygame.draw.rect(screen, cor_barra, (202, y_b, larg_preenchida, 30), border_radius=4)
+                pygame.draw.rect(screen, (95, 165, 235), (202, y_b, 396, 30), width=1, border_radius=4)
+
+                screen.blit(fonte_painel.render(rotulo, True, BRANCO), (212, y_b + 6))
+                screen.blit(fonte_painel.render(str(valor), True, BRANCO), (576, y_b + 6))
+
+            # Botões EMPREGO (JOB) e EXPULSAR (EVICT) com texto bem centralizado
+            botao_job = pygame.Rect(275, 395, 115, 51)
+            pygame.draw.rect(screen, (35, 130, 215), botao_job, border_radius=8)
+            pygame.draw.rect(screen, (140, 215, 255), botao_job, width=2, border_radius=8)
+            txt_j = fonte_painel.render(ui["botao_emprego"], True, BRANCO)
+            screen.blit(txt_j, txt_j.get_rect(center=botao_job.center))
+
+            botao_evict = pygame.Rect(410, 395, 115, 51)
+            pygame.draw.rect(screen, (165, 45, 55), botao_evict, border_radius=8)
+            pygame.draw.rect(screen, (245, 120, 130), botao_evict, width=2, border_radius=8)
+            txt_e = fonte_painel.render(ui["botao_expulsar"], True, BRANCO)
+            screen.blit(txt_e, txt_e.get_rect(center=botao_evict.center))
+
+            desenhar_botao_fechar(screen, botao_fechar, mouse_pos)
+
+        # 3. PAINEL DO ANDAR ABERTO (altura 406 sem espaço sobrando!)
+        elif andar_aberto is not None:
+            andar_sel = andares[andar_aberto]
+            painel = pygame.Rect(184, 55, 432, 406)
+            pygame.draw.rect(screen, (18, 36, 76), painel, border_radius=10)
+            pygame.draw.rect(screen, (75, 145, 225), painel, width=3, border_radius=10)
+
             txt_p_titulo = fonte_botao.render(andar_sel["nome"], False, andar_sel["cor_titulo"])
             screen.blit(txt_p_titulo, txt_p_titulo.get_rect(center=(400, 80)))
 
-            tempos_texto = ["1m", "4m", "8m"]
-            for idx, prod in enumerate(andar_sel["produtos"]):
-                y_row = 104 + idx * 102
-                tem_trabalhador = idx < len(andar_sel["trabalhadores"])
+            # --- SE FOR ANDAR RESIDENCIAL ---
+            if andar_sel.get("tipo") == "residencial":
+                for idx in range(5):
+                    y_m = 102 + idx * 60
+                    box_avatar = pygame.Rect(202, y_m, 54, 54)
+                    card_info = pygame.Rect(262, y_m, 336, 54)
+                    pygame.draw.rect(screen, (25, 52, 95), box_avatar, border_radius=6)
+                    pygame.draw.rect(screen, (95, 175, 245), box_avatar, width=2, border_radius=6)
+                    pygame.draw.rect(screen, (25, 48, 95), card_info, border_radius=6)
+                    pygame.draw.rect(screen, (95, 175, 245), card_info, width=2, border_radius=6)
 
-                #Caixinha à esquerda (funcionário contratado ou + HIRE)
-                box_esq = pygame.Rect(198, y_row, 74, 92)
-                pygame.draw.rect(screen, (25, 52, 95), box_esq, border_radius=6)
-                pygame.draw.rect(screen, (95, 175, 245), box_esq, width=2, border_radius=6)
-                if tem_trabalhador:
-                    trab = andar_sel["trabalhadores"][idx]
-                    sp = pygame.transform.scale(trab["sprite"], (trab["sprite"].get_width() * 2, trab["sprite"].get_height() * 2))
-                    screen.blit(sp, sp.get_rect(center=box_esq.center))
-                else:
-                    txt_hire = fonte_instrucoes.render("+ HIRE", True, (130, 210, 255))
-                    screen.blit(txt_hire, txt_hire.get_rect(center=box_esq.center))
+                    if idx < len(andar_sel["moradores"]):
+                        m = andar_sel["moradores"][idx]
+                        sp = pygame.transform.scale(m["sprite"], (int(m["sprite"].get_width() * 1.5), int(m["sprite"].get_height() * 1.5)))
+                        screen.blit(sp, sp.get_rect(center=box_avatar.center))
 
-                #Cartão grande à direita (Cinza sem funcionário, Vermelho PLACE ORDER, Amarelo 1 BUX ou Verde STOCKED)
-                card_dir = pygame.Rect(280, y_row, 322, 92)
-                if not tem_trabalhador:
-                    cor_card, cor_topo, cor_borda = (55, 62, 78), (75, 84, 105), (120, 130, 155)
-                elif prod["estoque"] > 0:
-                    cor_card, cor_topo, cor_borda = (35, 115, 55), (50, 145, 75), (110, 225, 130)
-                elif prod["tempo"] > 0:
-                    cor_card, cor_topo, cor_borda = (155, 120, 25), (185, 145, 35), (250, 220, 95)
-                else:
-                    cor_card, cor_topo, cor_borda = (145, 22, 28), (180, 35, 42), (235, 95, 105)
+                        if m["emprego"] == m["dream_job"]:
+                            pygame.draw.circle(screen, AMARELO_TITULO, (box_avatar.left + 4, box_avatar.bottom - 4), 8)
 
-                pygame.draw.rect(screen, cor_card, card_dir, border_radius=6)
-                pygame.draw.rect(screen, cor_topo, (card_dir.x, card_dir.y, card_dir.width, 24), border_radius=6)
-                pygame.draw.rect(screen, cor_borda, card_dir, width=2, border_radius=6)
+                        screen.blit(fonte_painel.render(m["nome"], True, BRANCO), (card_info.x + 12, card_info.y + 8))
+                        emp_str = (m["emprego"] or ui["desempregado"]).upper()
+                        cor_emp = (130, 235, 110) if m["emprego"] else (255, 175, 80)
+                        screen.blit(fonte_painel.render(f"{ui['emprego']} {emp_str}", True, cor_emp), (card_info.x + 12, card_info.y + 30))
 
-                txt_nome_p = fonte_instrucoes.render(prod["nome"].title(), True, BRANCO)
-                screen.blit(txt_nome_p, (card_dir.x + 12, card_dir.y + 1))
-                for m in range(idx + 1):
-                    pygame.draw.circle(screen, AMARELO_TITULO, (card_dir.right - 16 - m * 10, card_dir.y + 12), 7)
+            #SE FOR ANDAR COMERCIAL
+            elif andar_sel.get("tipo") == "comercial":
+                tempos_texto = ["1m", "4m", "8m"]
+                for idx, prod in enumerate(andar_sel["produtos"]):
+                    y_row = 104 + idx * 102
+                    tem_trabalhador = idx < len(andar_sel["trabalhadores"])
 
-                txt_tempo = fonte_instrucoes.render(f"L {tempos_texto[idx]}", True, (255, 235, 140))
-                screen.blit(txt_tempo, (card_dir.x + 14, card_dir.y + 29))
-                txt_units = fonte_instrucoes.render(f"UNITS: {prod['estoque']}/{prod['max']}", True, BRANCO)
-                screen.blit(txt_units, (card_dir.right - txt_units.get_width() - 12, card_dir.y + 29))
+                    box_esq = pygame.Rect(198, y_row, 74, 92)
+                    pygame.draw.rect(screen, (25, 52, 95), box_esq, border_radius=6)
+                    pygame.draw.rect(screen, (95, 175, 245), box_esq, width=2, border_radius=6)
+                    if tem_trabalhador:
+                        trab = andar_sel["trabalhadores"][idx]
+                        sp = pygame.transform.scale(trab["sprite"], (trab["sprite"].get_width() * 2, trab["sprite"].get_height() * 2))
+                        screen.blit(sp, sp.get_rect(center=box_esq.center))
+                    else:
+                        txt_hire = fonte_painel.render(ui["contratar"].upper(), True, (130, 210, 255))
+                        screen.blit(txt_hire, txt_hire.get_rect(center=box_esq.center))
 
-                botao_order = pygame.Rect(card_dir.x + 12, card_dir.y + 54, card_dir.width - 24, 30)
-                pygame.draw.rect(screen, (25, 25, 30), botao_order.move(0, 2), border_radius=4)
-                pygame.draw.rect(screen, cor_topo, botao_order, border_radius=4)
-                pygame.draw.rect(screen, cor_borda, botao_order, width=1, border_radius=4)
+                    card_dir = pygame.Rect(280, y_row, 322, 92)
+                    if not tem_trabalhador:
+                        cor_card, cor_topo, cor_borda = (55, 62, 78), (75, 84, 105), (120, 130, 155)
+                    elif prod["estoque"] > 0:
+                        cor_card, cor_topo, cor_borda = (35, 115, 55), (50, 145, 75), (110, 225, 130)
+                    elif prod["tempo"] > 0:
+                        cor_card, cor_topo, cor_borda = (155, 120, 25), (185, 145, 35), (250, 220, 95)
+                    else:
+                        cor_card, cor_topo, cor_borda = (145, 22, 28), (180, 35, 42), (235, 95, 105)
 
-                if not tem_trabalhador:
-                    label = "HIRE WORKER FIRST"
-                elif prod["estoque"] > 0:
-                    label = "STOCKED"
-                elif prod["tempo"] > 0:
-                    label = "1 BUX TO FINISH"
-                else:
-                    label = "PLACE ORDER"
-                texto_botao = fonte_instrucoes.render(label, True, BRANCO)
-                screen.blit(texto_botao, texto_botao.get_rect(center=botao_order.center))
+                    pygame.draw.rect(screen, cor_card, card_dir, border_radius=6)
+                    pygame.draw.rect(screen, cor_topo, (card_dir.x, card_dir.y, card_dir.width, 24), border_radius=6)
+                    pygame.draw.rect(screen, cor_borda, card_dir, width=2, border_radius=6)
 
-            #Rodapé dinâmico com Total Skill e Rank + Botão X
-            rodape = pygame.Rect(198, 412, 340, 34)
-            pygame.draw.rect(screen, (28, 52, 105), rodape, border_radius=5)
-            cat = andar_sel.get("categoria", "food")
-            skill_total = sum(t["skills"][cat] for t in andar_sel["trabalhadores"])
-            rank_atual = andar_sel.get("rank", 1)
-            txt_skill = fonte_instrucoes.render(f"Total Skill: {skill_total}   |   Rank: {rank_atual}", True, (150, 210, 255))
-            screen.blit(txt_skill, txt_skill.get_rect(center=rodape.center))
+                    screen.blit(prod["icone"], (card_dir.x + 10, card_dir.y + 30))
 
-            botao_fechar = pygame.Rect(548, 412, 54, 34)
-            pygame.draw.rect(screen, (195, 45, 45), botao_fechar, border_radius=6)
-            pygame.draw.rect(screen, (255, 130, 130), botao_fechar, width=2, border_radius=6)
-            txt_x = fonte_instrucoes.render("X", True, BRANCO)
-            screen.blit(txt_x, txt_x.get_rect(center=botao_fechar.center))
+                    txt_nome_p = fonte_painel.render(prod["nome"].upper(), True, BRANCO)
+                    screen.blit(txt_nome_p, (card_dir.x + 12, card_dir.y + 4))
 
+                    #Moedinhas no canto direito
+                    for m in range(idx + 1):
+                        desenhar_moeda_mini(screen, card_dir.right - 16 - m * 15, card_dir.y + 12)
 
+                    #Ícone de reloginho desenhado + Tempo
+                    cx_rel, cy_rel = card_dir.x + 66, card_dir.y + 40
+                    pygame.draw.circle(screen, (255, 235, 140), (cx_rel, cy_rel), 6, 1)
+                    pygame.draw.line(screen, (255, 235, 140), (cx_rel, cy_rel), (cx_rel, cy_rel - 4), 1)
+                    pygame.draw.line(screen, (255, 235, 140), (cx_rel, cy_rel), (cx_rel + 3, cy_rel), 1)
 
 
     if tela_atual in ("como_jogar", "configuracoes"):
