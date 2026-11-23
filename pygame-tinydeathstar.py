@@ -169,7 +169,21 @@ TEXTOS = {
             "2. Use o elevador para levar visitantes ao andar certo.",
             "3. Colete créditos para expandir o Império!",
             "Atalho rápido: aperte M para mutar o som."
-        ]
+        ],
+        "fechado": "fechado",
+        "contratar": "+ vaga",
+        "contrate_antes": "CONTRATE ANTES",
+        "encomendar": "ENCOMENDAR",
+        "finalizar_bux": "1 BUX P/ TERMINAR",
+        "estocado": "ESTOCADO",
+        "habilidade": "Habilidade Total",
+        "emprego": "EMPREGO:",
+        "desempregado": "DESEMPREGADO",
+        "emp_atual": "Emprego Atual:",
+        "emp_sonho": "Emprego dos Sonhos:",
+        "btn_emprego": "EMPREGO",
+        "btn_expulsar": "EXPULSAR",
+        "escolher_local": "ESCOLHA O LOCAL DE TRABALHO"
     },
     "en": {
         "iniciar": "s t a r t",
@@ -186,7 +200,21 @@ TEXTOS = {
             "2. Use the elevator to take visitors to their floor.",
             "3. Collect credits to expand the Empire!",
             "Quick shortcut: press M to mute sound."
-        ]
+        ],
+        "fechado": "closed",
+        "contratar": "+ hire",
+        "contrate_antes": "HIRE WORKER FIRST",
+        "encomendar": "PLACE ORDER",
+        "finalizar_bux": "1 BUX TO FINISH",
+        "estocado": "STOCKED",
+        "habilidade": "Total Skill",
+        "emprego": "JOB:",
+        "desempregado": "UNEMPLOYED",
+        "emp_atual": "Current Job:",
+        "emp_sonho": "Dream Job:",
+        "btn_emprego": "JOB",
+        "btn_expulsar": "EVICT",
+        "escolher_local": "SELECT WORKPLACE"
     }
     
 }
