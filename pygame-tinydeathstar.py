@@ -355,7 +355,102 @@ def carregar_cenario(caminho, largura=366, altura=121):
     img = pygame.image.load(caminho).convert_alpha()
     return pygame.transform.scale(img, (largura, altura))
 
+#Food
 cenario_mos_espa = carregar_cenario("tiny-death-star/food/Mos_Espa_Cafe.png")
+cenario_ewok_sweets = carregar_cenario("tiny-death-star/food/Ewok_Sweets.png")
+cenario_bongo_sandwiches = carregar_cenario("tiny-death-star/food/Bongo_Sandwiches.png")
+cenario_dexs_diner = carregar_cenario("tiny-death-star/food/Dexs_Diner.png")
+cenario_geonosian_grub = carregar_cenario("tiny-death-star/food/Geonosian_Grub.png")
+cenario_huttza_parlor = carregar_cenario("tiny-death-star/food/Huttza_Parlor.png")
+cenraio_ithorian_food = carregar_cenario("tiny-death-star/food/Ithorian_Food.png")
+cenario_melahnese_food = carregar_cenario("tiny-death-star/food/Melahnese_Food.png")
+cenario_mon_cala_seafood = carregar_cenario("tiny-death-star/food/Mon_Cala_Seafood.png")
+cenario_neimoidian_food = carregar_cenario("tiny-death-star/food/Neimoidian_Food.png")
+cenario_scoop_of_hoth = carregar_cenario("tiny-death-star/food/Scoop_of_Hoth.png")
+cenario_star_smoothies = carregar_cenario("tiny-death-star/food/Star_Smoothies.png")
+cenario_the_cantina = carregar_cenario("tiny-death-star/food/The_Cantina.png")
+
+#Recreation
+cenario_dark_side_cave = carregar_cenario("tiny-death-star/recreation/Dark_Side_Cave.png")
+cenario_endor_adventure = carregar_cenario("tiny-death-star/recreation/Endor_Adventure.png")
+cenario_galaxies_opera = carregar_cenario("tiny-death-star/recreation/Galaxies_Opera.png")
+cenario_holochess_hall = carregar_cenario("tiny-death-star/recreation/Holochess_Hall.png")
+cenario_holofilm_rental = carregar_cenario("tiny-death-star/recreation/Holofilm_Rental.png")
+cenario_holonet_cafe = carregar_cenario("tiny-death-star/recreation/Holonet_Cafe.png")
+cenario_holonet_cineplex = carregar_cenario("tiny-death-star/recreation/Holonet_Cineplex.png")
+cenario_imperial_museum = carregar_cenario("tiny-death-star/recreation/Imperial_Museum.png")
+cenario_jedi_jump_up = carregar_cenario("tiny-death-star/recreation/Jedi_Jump_Up.png")
+cenario_mon_cala_aquarium = carregar_cenario("tiny-death-star/recreation/Mon_Cala_Aquarium.png")
+cenario_planetarium = carregar_cenario("tiny-death-star/recreation/Planetarium.png")
+cenario_puttie_course = carregar_cenario("tiny-death-star/recreation/Puttie_Course.png")
+cenario_rancor_pit = carregar_cenario("tiny-death-star/recreation/Rancor_Pit.png")
+cenario_rebos_karaoke = carregar_cenario("tiny-death-star/recreation/Rebos_Karaoke.png")
+cenario_statuary_park = carregar_cenario("tiny-death-star/recreation/Statuary_Park.png")
+cenario_training_remotes = carregar_cenario("tiny-death-star/recreation/Training_Remotes.png")
+
+#Residential
+cenario_abafar_apts = carregar_cenario("tiny-death-star/residential/Abafar_Apts.png")
+cenario_alderaan_apts = carregar_cenario("tiny-death-star/residential/Alderaan_Apts.png")
+cenario_aleen_apts = carregar_cenario("tiny-death-star/residential/Aleen_Apts.png")
+cenario_balnab_apts = carregar_cenario("tiny-death-star/residential/Balnab_Apts.png")
+cenario_besalisk_apts = carregar_cenario("tiny-death-star/residential/Besalisk_Apts.png")
+cenario_bespin_apts = carregar_cenario("tiny-death-star/residential/Bespin_Apts.png")
+cenario_bith_apts = carregar_cenario("tiny-death-star/residential/Bith_Apts.png")
+cenario_bothan_apts = carregar_cenario("tiny-death-star/residential/Bothan_Apts.png")
+cenario_carlac_apts = carregar_cenario("tiny-death-star/residential/Carlac_Apts.png")
+cenario_chiss_apts = carregar_cenario("tiny-death-star/residential/Chiss_Apts.png")
+cenario_christophsis_apts = carregar_cenario("tiny-death-star/residential/Christophsis_Apts.png")
+cenario_coruscant_apts = carregar_cenario("tiny-death-star/residential/Coruscant_Apts.png")
+cenario_csilla_apts = carregar_cenario("tiny-death-star/residential/Csilla_Apts.png")
+cenario_dagobah_apts = carregar_cenario("tiny-death-star/residential/Dagobah_Apts.png")
+cenario_dathomir_apts = carregar_cenario("tiny-death-star/residential/Dathomir_Apts.png")
+cenario_duros_apts = carregar_cenario("tiny-death-star/residential/Duros_Apts.png")
+cenario_endor_apts = carregar_cenario("tiny-death-star/residential/Endor_Apts.png")
+cenario_endor_arms = carregar_cenario("tiny-death-star/residential/Endor_Arms.png")
+cenario_felucia_apts = carregar_cenario("tiny-death-star/residential/Felucia_Apts.png")
+cenario_florrum_apts = carregar_cenario("tiny-death-star/residential/Florrum_Apts.png")
+cenario_gamorrean_apts = carregar_cenario("tiny-death-star/residential/Gamorrean_Apts.png")
+cenario_geonosis_apts = carregar_cenario("tiny-death-star/residential/Geonosis_Apts.png")
+cenario_gran_apts = carregar_cenario("tiny-death-star/residential/Gran_Apts.png")
+cenario_hoth_apts = carregar_cenario("tiny-death-star/residential/Hoth_Apts.png")
+cenario_kadavo_apts = carregar_cenario("tiny-death-star/residential/Kadavo_Apts.png")
+cenario_kamino_apts = carregar_cenario("tiny-death-star/residential/Kamino_Apts.png")
+cenario_kashyyyk_apts = carregar_cenario("tiny-death-star/residential/Kashyyyk_Apts.png")
+cenario_kiros_apts = carregar_cenario("tiny-death-star/residential/Kiros_Apts.png")
+cenario_lotho_apts = carregar_cenario("tiny-death-star/residential/Lotho_Apts.png")
+cenario_mandalore_apts = carregar_cenario("tiny-death-star/residential/Mandalore_Apts.png")
+cenario_mon_cala_apts = carregar_cenario("tiny-death-star/residential/Mon_Cala_Apts.png")
+cenario_mustafar_apts = carregar_cenario("tiny-death-star/residential/Mustafar_Apts.png")
+cenario_naboo_apts = carregar_cenario("tiny-death-star/residential/Naboo_Apts.png")
+cenario_nal_hutta_apts = carregar_cenario("tiny-death-star/residential/Nal_Hutta_Apts.png")
+cenario_nautolan_apts = carregar_cenario("tiny-death-star/residential/Nautolan_Apts.png")
+cenario_onderon_apts = carregar_cenario("tiny-death-star/residential/Onderon_Apts.png")
+cenario_quarzite_apts = carregar_cenario("tiny-death-star/residential/Quarzite_Apts.png")
+cenario_raydonia_apts = carregar_cenario("tiny-death-star/residential/Raydonia_Apts.png")
+cenario_rodian_apts = carregar_cenario("tiny-death-star/residential/Rodian_Apts.png")
+cenario_rugosa_apts = carregar_cenario("tiny-death-star/residential/Rugosa_Apts.png")
+cenario_ryloth_apts = carregar_cenario("tiny-death-star/residential/Ryloth_Apts.png")
+cenario_saleucami_apts = carregar_cenario("tiny-death-star/residential/Saleucami_Apts.png")
+cenario_serenno_apts = carregar_cenario("tiny-death-star/residential/Serenno_Apts.png")
+cenario_snivvian_apts = carregar_cenario("tiny-death-star/residential/Snivvian_Apts.png")
+cenario_talz_apts = carregar_cenario("tiny-death-star/residential/Talz_Apts.png")
+cenario_tatooine_apts = carregar_cenario("tiny-death-star/residential/Tatooine_Apts.png")
+cenario_teth_apts = carregar_cenario("tiny-death-star/residential/Teth_Apts.png")
+cenario_togruta_apts = carregar_cenario("tiny-death-star/residential/Togruta_Apts.png")
+cenario_twilek_apts = carregar_cenario("tiny-death-star/residential/Twilek_Apts.png")
+cenario_ugnaught_apts = carregar_cenario("tiny-death-star/residential/Ugnaught_Apts.png")
+cenario_utapau_apts = carregar_cenario("tiny-death-star/residential/Utapau_Apts.png")
+cenario_wookie_arms = carregar_cenario("tiny-death-star/residential/Wookie_Arms.png")
+cenario_yavin_apts = carregar_cenario("tiny-death-star/residential/Yavin_Apts.png")
+cenario_zanbar_apts = carregar_cenario("tiny-death-star/residential/Zanbar_Apts.png")
+cenario_zygerria_apts = carregar_cenario("tiny-death-star/residential/Zygerria_Apts.png")
+
+#Retail
+cenario_cloth_fabricator = carregar_cenario("tiny-death-star/retail/Cloth_Fabricator.png")
+cenario_droid_store = carregar_cenario("tiny-death-star/retail/Droid_Store.png")
+cenario_galactic_music = carregar_cenario("tiny-death-star/retail/Galactic_Music.png")
+
+
 #Arrivals
 cenario_arrivals = carregar_cenario("tiny-death-star/scenes/Blast_Doors.png")
 
@@ -448,15 +543,74 @@ andares = [
     },
 ]
 
-novos_andares_disponiveis = [
-    {
-        "nome": "christophsis apts",
-        "tipo": "residencial",
-        "cenario": cenario_arrivals,  #Troque pelo PNG residencial quando quiser
-        "cor_titulo": (130, 200, 255),
-        "moradores": []  #Máximo de 5 bitizens morando aqui!
-    },
+escolhendo_novo_andar = False  # Controla se o menu de escolha de andar está aberto
+
+# Ícones seguros para os novos andares (usa quadradinhos coloridos até você colocar PNGs específicos)
+ico_prod_1 = carregar_icone_seguro("tiny-death-star/items/item1.png", (70, 175, 235))
+ico_prod_2 = carregar_icone_seguro("tiny-death-star/items/item2.png", (195, 110, 60))
+ico_prod_3 = carregar_icone_seguro("tiny-death-star/items/item3.png", (225, 185, 75))
+
+CATALOGO_ANDARES = {
+    "residencial": [
+        {"nome": "christophsis apts", "cenario": cenario_arrivals},
+        {"nome": "utapau apts", "cenario": cenario_arrivals},
+        {"nome": "tatooine apts", "cenario": cenario_arrivals},
+        {"nome": "dagobah apts", "cenario": cenario_arrivals},
+    ],
+    "food": [
+        {
+            "nome": "bantha burger", "cenario": cenario_mos_espa,
+            "produtos": [("bantha burger", 100, 180), ("krayt bacon burger", 150, 360), ("sithwich", 300, 600)]
+        },
+        {
+            "nome": "the cantina", "cenario": cenario_mos_espa,
+            "produtos": [("flameout", 10, 180), ("reactor core", 100, 360), ("meltdown", 250, 600)]
+        },
+        {
+            "nome": "dex's diner", "cenario": cenario_mos_espa,
+            "produtos": [("jawa juice", 150, 180), ("sliders", 400, 360), ("fried nerf steak", 850, 600)]
+        },
+    ],
+    "service": [
+        {
+            "nome": "bacta tanks", "cenario": cenario_arrivals,
+            "produtos": [("kolto pack", 450, 180), ("bactade prescription", 1800, 360), ("bacta immersion", 3000, 600)]
+        },
+        {
+            "nome": "cloud city spa", "cenario": cenario_arrivals,
+            "produtos": [("ugnaught pedicure", 450, 180), ("tibanna facial", 600, 360), ("rodian massage", 1200, 600)]
+        },
+    ],
+    "recreation": [
+        {
+            "nome": "holochess hall", "cenario": cenario_arrivals,
+            "produtos": [("dejarik chess", 50, 180), ("denebian chess", 150, 360), ("divoran chess", 1200, 600)]
+        },
+        {
+            "nome": "mon cala aquarium", "cenario": cenario_arrivals,
+            "produtos": [("admission", 50, 180), ("gooberfish toy", 80, 360), ("feed sea hogs", 250, 600)]
+        },
+    ],
+    "retail": [
+        {
+            "nome": "droid store", "cenario": cenario_arrivals,
+            "produtos": [("mouse droid", 150, 180), ("interrogation droid", 450, 360), ("astromech droid", 600, 600)]
+        },
+        {
+            "nome": "watto's wares", "cenario": cenario_arrivals,
+            "produtos": [("chance cubes", 200, 180), ("podracer", 300, 360), ("hyperdrive", 800, 600)]
+        },
+    ],
+}
+
+OPCOES_CONSTRUCAO = [
+    ("residencial", "RESIDENTIAL", (105, 175, 245)),
+    ("food",        "FOOD",        (110, 225, 115)),
+    ("service",     "SERVICE",     (245, 145, 75)),
+    ("recreation",  "RECREATION",  (245, 215, 75)),
+    ("retail",      "RETAIL",      (205, 125, 245)),
 ]
+
 
 
 andar_destino = sortear_andar_aberto()
