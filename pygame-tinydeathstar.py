@@ -544,6 +544,7 @@ lista_passageiros = [
 ]
 
 tem_passageiro = True
+voltando_elevador = False
 ja_moveu_elevador = False  #Evita errar antes mesmo de começar a subir
 clientes_no_andar = []     #Lista dos personagens caminhando e comprando nos andares
 
@@ -1191,47 +1192,58 @@ while game:
         screen.blit(txt_custo, txt_custo.get_rect(center=(400, y_topo_torre - 43)))
 
 
-        #MOVIMENTO DO ELEVADOR (agora com [0] no get_pressed)
+        #MOVIMENTO DO ELEVADOR
         clicando = pygame.mouse.get_pressed()[0]
         teclas = pygame.key.get_pressed()
 
-        subindo = (clicando and botao_cima_rect.collidepoint(mouse_pos)) or teclas[pygame.K_UP]
-        descendo = (clicando and botao_baixo_rect.collidepoint(mouse_pos)) or teclas[pygame.K_DOWN]
+        if not voltando_elevador:
+            subindo = (clicando and botao_cima_rect.collidepoint(mouse_pos)) or teclas[pygame.K_UP]
+            descendo = (clicando and botao_baixo_rect.collidepoint(mouse_pos)) or teclas[pygame.K_DOWN]
+            if subindo or descendo:
+                ja_moveu_elevador = True
+        else:
+            subindo = False
+            descendo = True
 
         #Limite superior do elevador acompanha o último andar construído
         y_min_elevador = 505 - len(andares) * 145 + 65
         if subindo:
             elevador_y = max(float(y_min_elevador), elevador_y - elevador_vel)
         if descendo:
-            elevador_y = min(425.0, elevador_y + elevador_vel)
+            vel_atual = elevador_vel * 1.5 if voltando_elevador else elevador_vel
+            elevador_y = min(425.0, elevador_y + vel_atual)
+
+            #Chegou no térreo (425) após voltar sozinho: pega próximo passageiro
+            if voltando_elevador and elevador_y >= 425.0:
+                voltando_elevador = False
+                passageiro_atual, passageiro_olha_dir = sortear_passageiro_unico()
+                andar_destino = sortear_andar_aberto()
+                tem_passageiro = True
+                ja_moveu_elevador = False
 
         #Câmera acompanha o elevador automaticamente ao subir ou descer
         if subindo and elevador_y + scroll_y < 140:
-            max_scroll = max(0, (len(andares) * 145 + 220) - 505)
+            max_scroll = max(0, (len(andares) * 145 + 260) - 505)
             scroll_y = min(max_scroll, 140 - elevador_y)
         elif descendo and elevador_y + scroll_y > 380:
             scroll_y = max(0, 380 - elevador_y)
-
 
         #Desenha a cabine na altura atualizada
         screen.blit(elevador_img, (188, int(elevador_y + scroll_y)))
 
         #PASSAGEIRO NO ELEVADOR E DESEMBARQUE
-        if subindo or descendo:
-            ja_moveu_elevador = True
-
         if tem_passageiro:
             px = 188 + (54 - passageiro_atual.get_width()) // 2
             py = int(elevador_y + scroll_y) + 60 - passageiro_atual.get_height()
             screen.blit(passageiro_atual, (px, py))
 
-            balao_rect = pygame.Rect(197, int(elevador_y) - 24, 36, 20)
+            balao_rect = pygame.Rect(197, int(elevador_y + scroll_y) - 24, 36, 20)
             pygame.draw.rect(screen, BRANCO, balao_rect, border_radius=4)
             pygame.draw.rect(screen, PRETO, balao_rect, width=2, border_radius=4)
             txt_dest = fonte_botao.render(str(andar_destino), False, PRETO)
             screen.blit(txt_dest, txt_dest.get_rect(center=(balao_rect.centerx, balao_rect.centery - 2)))
 
-            if not subindo and not descendo and ja_moveu_elevador:
+            if not subindo and not descendo and ja_moveu_elevador and not voltando_elevador:
                 andar_parado = None
                 for i in range(len(andares)):
                     y_piso_elevador = 505 - (i + 1) * 145 + 65
@@ -1244,9 +1256,9 @@ while game:
                     andar_obj = andares[andar_parado - 1]
                     y_chao = 505 - (andar_parado - 1) * 145
 
-                    # Se for andar RESIDENCIAL, ele se muda para lá (máximo 5 moradores)!
-                    if andar_obj.get("tipo") == "residencial" and len(andar_obj["moradores"]) < 5:
-                        dream_nome, skills_geradas = gerar_dream_job_e_skills()
+                    if acertou:
+                        moedas += 10 * andar_parado
+
                     mudou_para_ca = False
                     if andar_obj.get("tipo") == "residencial" and len(andar_obj["moradores"]) < 5:
                         mudou_para_ca = True
@@ -1272,15 +1284,17 @@ while game:
                         "morador_aqui": mudou_para_ca,
                         "tempo_vida": 450
                     })
+
                     tem_passageiro = False
                     ja_moveu_elevador = False
 
-        else:
-            if elevador_y >= 420 and not subindo:
-                passageiro_atual, passageiro_olha_dir = sortear_passageiro_unico()
-                andar_destino = sortear_andar_aberto()
-                tem_passageiro = True
-                ja_moveu_elevador = False
+                    #Só volta sozinho se desembarcou acima do térreo; se já está no térreo, pega o próximo
+                    if elevador_y < 425.0:
+                        voltando_elevador = True
+                    else:
+                        passageiro_atual, passageiro_olha_dir = sortear_passageiro_unico()
+                        andar_destino = sortear_andar_aberto()
+                        tem_passageiro = True
 
 
         #ANIMAÇÃO DOS CLIENTES (suave, com pausas e virando para o lado certo)
