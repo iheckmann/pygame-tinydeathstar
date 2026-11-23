@@ -324,7 +324,7 @@ def carregar_cenario(caminho, largura=366, altura=121):
 
 cenario_mos_espa = carregar_cenario("tiny-death-star/food/Mos_Espa_Cafe.png")
 #Arrivals
-cenario_arrivals = carregar_cenario("tiny-death-star/scenes/Blast_Doors.webp")
+cenario_arrivals = carregar_cenario("tiny-death-star/scenes/Blast_Doors.png")
 
 #Elevador:
 elevador_img = pygame.image.load("tiny-death-star/elevator/Standard_Elevator.png").convert_alpha()
