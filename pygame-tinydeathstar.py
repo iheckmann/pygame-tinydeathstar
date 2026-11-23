@@ -750,6 +750,24 @@ OPCOES_CONSTRUCAO = [
     ("retail",      "RETAIL",      (205, 125, 245)),
 ]
 
+def gerar_dream_job_e_skills():
+    #Pega todos os andares comerciais possíveis (os já construídos + todo o catálogo)
+    opcoes_emprego = [("mos espa cafe", "food")]
+    for cat in ("food", "service", "recreation", "retail"):
+        for item in CATALOGO_ANDARES[cat]:
+            opcoes_emprego.append((item["nome"], cat))
+
+    dream_nome, dream_cat = random.choice(opcoes_emprego)
+
+    # Gera skills de 1 a 6 nas outras áreas, mas garante skill alta (7 a 9) na área do Dream Job!
+    skills = {
+        "food": random.randint(1, 6),
+        "service": random.randint(1, 6),
+        "recreation": random.randint(1, 6),
+        "retail": random.randint(1, 6),
+    }
+    skills[dream_cat] = random.randint(7, 9)
+    return dream_nome, skills
 
 
 andar_destino = sortear_andar_aberto()
@@ -880,6 +898,25 @@ while game:
                                         "produtos": lista_prods
                                     })
                                 escolhendo_novo_andar = False
+                                break
+
+                #ESCOLHENDO O LOCAL DE TRABALHO
+                elif escolhendo_emprego and morador_selecionado is not None:
+                    if pygame.Rect(548, 412, 54, 34).collidepoint(mouse_pos):
+                        escolhendo_emprego = False
+                    else:
+                        comerciais = [a for a in andares if a.get("tipo") == "comercial" and len(a["trabalhadores"]) < 3]
+                        for idx, c in enumerate(comerciais):
+                            btn_loc = pygame.Rect(210, 125 + idx * 72, 380, 58)
+                            if btn_loc.collidepoint(mouse_pos):
+                                # Remove do emprego anterior se já trabalhava em outro lugar
+                                for a in andares:
+                                    if a.get("tipo") == "comercial" and morador_selecionado in a["trabalhadores"]:
+                                        a["trabalhadores"].remove(morador_selecionado)
+                                morador_selecionado["emprego"] = c["nome"]
+                                c["trabalhadores"].append(morador_selecionado)
+                                escolhendo_emprego = False
+                                morador_selecionado = None
                                 break
 
                 #FICHA DO BITIZEN (Current Job, Dream Job, Skills, JOB, EVICT)
@@ -1206,20 +1243,15 @@ while game:
 
                     # Se for andar RESIDENCIAL, ele se muda para lá (máximo 5 moradores)!
                     if andar_obj.get("tipo") == "residencial" and len(andar_obj["moradores"]) < 5:
+                        dream_nome, skills_geradas = gerar_dream_job_e_skills()
                         andar_obj["moradores"].append({
                             "nome": random.choice(NOMES_STAR_WARS),
                             "sprite": passageiro_atual,
                             "olha_dir": passageiro_olha_dir,
                             "emprego": None,
-                            "dream_job": "mos espa cafe",
-                            "skills": {
-                                "food": random.randint(1, 9),
-                                "service": random.randint(1, 9),
-                                "recreation": random.randint(1, 9),
-                                "retail": random.randint(1, 9),
-                            }
+                            "dream_job": dream_nome,
+                            "skills": skills_geradas
                         })
-
 
                     clientes_no_andar.append({
                         "sprite": passageiro_atual,
