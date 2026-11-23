@@ -172,8 +172,8 @@ TEXTOS = {
             "Atalho rápido: aperte M para mutar o som."
         ],
         "fechado": "fechado",
-        "contratar": "+ vaga",
-        "contratar_antes": "CONTRATAR ANTES",
+        "contrate": "+ vaga",
+        "contrate_antes": "CONTRATE ANTES",
         "encomendar": "ENCOMENDAR",
         "finalizar_bux": "1 BUX P/ TERMINAR",
         "estocado": "ESTOCADO",
@@ -203,8 +203,8 @@ TEXTOS = {
             "Quick shortcut: press M to mute sound."
         ],
         "fechado": "closed",
-        "contratar": "+ hire",
-        "contratar_antes": "HIRE WORKER FIRST",
+        "contrate": "+ hire",
+        "contrate_antes": "HIRE WORKER FIRST",
         "encomendar": "PLACE ORDER",
         "finalizar_bux": "1 BUX TO FINISH",
         "estocado": "STOCKED",
@@ -474,7 +474,7 @@ def desenhar_moeda_mini(superficie, cx, cy):
 
 def desenhar_botao_fechar(superficie, rect, mouse_pos):
     hover = rect.collidepoint(mouse_pos)
-    clicando = hover and pygame.mouse.get_pressed()
+    clicando = hover and pygame.mouse.get_pressed()[0]
     cor_fundo = (145, 25, 25) if clicando else ((235, 65, 65) if hover else (195, 45, 45))
     cor_borda = (255, 200, 200) if hover else (255, 130, 130)
     desloc_y = 2 if clicando else 0
@@ -540,7 +540,7 @@ while game:
 
 
             elif tela_atual == "jogo":
-                #TELA A: ESCOLHENDO O LOCAL DE TRABALHO (após clicar em JOB na ficha)
+                #ESCOLHENDO O LOCAL DE TRABALHO (após clicar em JOB na ficha)
                 if escolhendo_emprego and morador_selecionado is not None:
                     if pygame.Rect(548, 412, 54, 34).collidepoint(mouse_pos):
                         escolhendo_emprego = False
@@ -559,7 +559,7 @@ while game:
                                 morador_selecionado = None
                                 break
 
-                #TELA B: FICHA DO BITIZEN (Current Job, Dream Job, Skills, JOB, EVICT)
+                #FICHA DO BITIZEN (Current Job, Dream Job, Skills, JOB, EVICT)
                 elif morador_selecionado is not None:
                     if pygame.Rect(548, 412, 54, 34).collidepoint(mouse_pos):
                         morador_selecionado = None
@@ -575,7 +575,7 @@ while game:
                                 a["moradores"].remove(morador_selecionado)
                         morador_selecionado = None
 
-                #TELA C: PAINEL DE UM ANDAR ABERTO (Comercial ou Residencial)
+                #PAINEL DE UM ANDAR ABERTO (Comercial ou Residencial)
                 elif andar_aberto is not None:
                     andar_sel = andares[andar_aberto]
                     if pygame.Rect(548, 412, 54, 34).collidepoint(mouse_pos):
@@ -602,7 +602,7 @@ while game:
                                     prod["tempo"] = 0
                                     prod["estoque"] = prod["max"]
 
-                #TELA D: CLIQUES NORMAIS NA TORRE
+                #CLIQUES NORMAIS NA TORRE
                 else:
                     if pygame.Rect(515, 558, 95, 34).collidepoint(mouse_pos):
                         tela_atual = "menu"
@@ -615,12 +615,13 @@ while game:
                             andares.append(novos_andares_disponiveis.pop(0))
                             custo_andar += 100
 
-                    #Clicar em qualquer andar Comercial OU Residencial abre o painel dele!
-                    for i, andar in enumerate(andares):
-                        y_topo = 505 - (i + 1) * 145
-                        rect_andar = pygame.Rect(248, y_topo, 366, 145)
-                        if rect_andar.collidepoint(mouse_pos) and andar.get("tipo") in ("comercial", "residencial"):
-                            andar_aberto = i
+                    else:        
+                        #Clicar em qualquer andar Comercial OU Residencial abre o painel dele!
+                        for i, andar in enumerate(andares):
+                            y_topo = 505 - (i + 1) * 145
+                            rect_andar = pygame.Rect(248, y_topo, 366, 145)
+                            if rect_andar.collidepoint(mouse_pos) and andar.get("tipo") in ("comercial", "residencial"):
+                                andar_aberto = i
 
                 
 
@@ -1127,7 +1128,7 @@ while game:
                         sp = pygame.transform.scale(trab["sprite"], (trab["sprite"].get_width() * 2, trab["sprite"].get_height() * 2))
                         screen.blit(sp, sp.get_rect(center=box_esq.center))
                     else:
-                        txt_hire = fonte_painel.render(ui["contratar"].upper(), True, (130, 210, 255))
+                        txt_hire = fonte_painel.render(ui["contrate"].upper(), True, (130, 210, 255))
                         screen.blit(txt_hire, txt_hire.get_rect(center=box_esq.center))
 
                     card_dir = pygame.Rect(280, y_row, 322, 92)
@@ -1158,6 +1159,38 @@ while game:
                     pygame.draw.circle(screen, (255, 235, 140), (cx_rel, cy_rel), 6, 1)
                     pygame.draw.line(screen, (255, 235, 140), (cx_rel, cy_rel), (cx_rel, cy_rel - 4), 1)
                     pygame.draw.line(screen, (255, 235, 140), (cx_rel, cy_rel), (cx_rel + 3, cy_rel), 1)
+                    txt_tempo = fonte_painel.render(tempos_texto[idx], True, (255, 235, 140))
+                    screen.blit(txt_tempo, (cx_rel + 10, card_dir.y + 32))
+
+                    txt_units = fonte_painel.render(f"UNITS: {prod['estoque']}/{prod['max']}", True, BRANCO)
+                    screen.blit(txt_units, (card_dir.right - txt_units.get_width() - 12, card_dir.y + 32))
+
+                    botao_order = pygame.Rect(card_dir.x + 60, card_dir.y + 54, card_dir.width - 72, 28)
+                    pygame.draw.rect(screen, cor_topo, botao_order, border_radius=4)
+                    pygame.draw.rect(screen, cor_borda, botao_order, width=1, border_radius=4)
+
+                    if not tem_trabalhador:
+                        label = ui["contrate_antes"]
+                    elif prod["estoque"] > 0:
+                        label = ui["estocado"]
+                    elif prod["tempo"] > 0:
+                        label = ui["finalizar_bux"]
+                    else:
+                        label = ui["encomendar"]
+                    txt_botao = fonte_painel.render(label, True, BRANCO)
+                    screen.blit(txt_botao, txt_botao.get_rect(center=botao_order.center))
+
+                #Rodapé com Habilidade Total e Rank
+                rodape = pygame.Rect(198, 412, 340, 34)
+                pygame.draw.rect(screen, (28, 52, 105), rodape, border_radius=5)
+                cat = andar_sel.get("categoria", "food")
+                skill_total = sum(t["skills"][cat] for t in andar_sel["trabalhadores"])
+                txt_skill = fonte_painel.render(f"{ui['habilidade']}: {skill_total}  |  Rank: {andar_sel.get('rank', 1)}", True, (150, 210, 255))
+                screen.blit(txt_skill, txt_skill.get_rect(center=rodape.center))
+
+            # Botão vermelho X (12 espaços — fora do elif comercial para aparecer no residencial também!)
+            desenhar_botao_fechar(screen, botao_fechar, mouse_pos)
+
 
 
     if tela_atual in ("como_jogar", "configuracoes"):
