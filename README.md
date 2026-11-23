@@ -92,4 +92,9 @@ Vídeo curto mostrando o jogo funcionando:
 
 ## Uso de Inteligência Artificial
 
-#BELCOLOCAR
+A Inteligência Artificial foi utilizada como ferramenta de apoio técnico para acelerar etapas repetitivas e ajustes visuais, enquanto a arquitetura, as regras de negócio e a implementação principal foram conduzidas pela equipe:
+
+- *Estruturação de catálogos e dados:* Organização de dicionários extensos em Python para associar os cenários carregados dos PNGs às suas respectivas categorias (Residential, Food, Service, Recreation e Retail), produtos, estoques máximos e tempos de preparo.
+- *Coordenadas e layout de interface (UI):* Definição de posições em pixels, dimensões de componentes (pygame.Rect), escalonamento de sprites e cálculos de rolagem vertical (scroll_y).
+- *Desenho procedural no Pygame:* Criação de funções auxiliares com primitivas gráficas (pygame.draw) para botões interativos, barras de habilidades, ícones minimalistas e indicadores de estoque.
+- *Depuração pontual:* Apoio na revisão de indentação, ordenação de eventos de clique (MOUSEBUTTONDOWN) e controle de estados entre telas e painéis.
